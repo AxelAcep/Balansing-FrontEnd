@@ -45,14 +45,12 @@ class AuthService with ChangeNotifier {
     if (session != null) {
       final user = session.user;
 
-      if (user != null) {
-        // Menyimpan data user ke dalam _customer jika sudah login
-        _customer = customer_data.Customer(
-          id: user.id,  
-          email: user.email ?? '',
-        );
-      }
-      notifyListeners();
+      // Menyimpan data user ke dalam _customer jika sudah login
+      _customer = customer_data.Customer(
+        id: user.id,  
+        email: user.email ?? '',
+      );
+          notifyListeners();
       return true;  
     } else {
       return false;  
@@ -71,7 +69,7 @@ class AuthService with ChangeNotifier {
   // Fungsi untuk mengambil data customer dari API
   Future<customer_data.Customer?> getCustomerData() async {
     // Mengambil UID dari user yang sedang login
-    final customerUid = Supabase.instance.client.auth.currentSession?.user?.id;
+    final customerUid = Supabase.instance.client.auth.currentSession?.user.id;
     
     if (customerUid == null) {
       return null;

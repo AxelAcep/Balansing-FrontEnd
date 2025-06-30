@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Pastikan jalur impor ini benar di proyek Anda
-import 'package:balansing/widgets/menu_button_widget.dart'; // Jika digunakan
-import 'package:balansing/screens/Auth/LoginScreen.dart'; // Jika digunakan untuk navigasi kembali
-import 'package:balansing/screens/Auth/DaftarScreenII.dart';
+// Jika digunakan
+// Jika digunakan untuk navigasi kembali
+import 'package:balansing/screens/AuthIbu/DaftarScreenII.dart';
 
 class Daftarscreen extends StatefulWidget {
-  final bool Jenis;
 
-  const Daftarscreen({super.key, required this.Jenis});
+  const Daftarscreen({super.key});
 
   @override
   State<Daftarscreen> createState() => _DaftarScreenState();
@@ -40,8 +39,7 @@ class _DaftarScreenState extends State<Daftarscreen> {
 
     return Scaffold(
       backgroundColor: Colors.white, // Background screen putih
-      body: widget.Jenis // Perkondisian Jenis: true untuk tampilan pendaftaran lengkap
-          ? Stack( // Gunakan Stack untuk menempatkan tombol kembali di atas konten scrollable
+      body: Stack( // Gunakan Stack untuk menempatkan tombol kembali di atas konten scrollable
               children: [
                 // Tombol Kembali di pojok kiri atas
                 Positioned(
@@ -355,11 +353,10 @@ class _DaftarScreenState extends State<Daftarscreen> {
                                       print("Nomor Telepon: ${_nomorTeleponController.text}");
                                       print("Email: ${_emailController.text}");
                                       print("Password: ${_passwordController.text}");
-                                      print("Jenis: ${widget.Jenis ? 0 : 1}"); // Print 0 jika true, 1 jika false
 
                                        Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => DaftarscreenII(Jenis: widget.Jenis)),
+                                        MaterialPageRoute(builder: (context) => DaftarscreenII()),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
@@ -388,13 +385,6 @@ class _DaftarScreenState extends State<Daftarscreen> {
                 ),
               ],
             )
-          : const Center( // Jika widget.Jenis adalah false
-              child: Text(
-                "Ini adalah tampilan Daftarscreen untuk Jenis false",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                textAlign: TextAlign.center,
-              ),
-            ),
     );
   }
 }

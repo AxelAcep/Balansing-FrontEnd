@@ -1,11 +1,10 @@
-import 'package:balansing/screens/Auth/DaftarScreen.dart';
+import 'package:balansing/screens/AuthKader/DaftarScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class LoginScreen extends StatefulWidget {
-  final bool Jenis;
 
-  const LoginScreen({super.key, required this.Jenis});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -203,16 +202,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: ElevatedButton(
                               onPressed: () {
                                 // --- Perubahan logika di sini ---
-                                if (widget.Jenis == true) {
                                   print("Email: ${_usernameController.text}");
                                   print("Password: ${_passwordController.text}");
                                   print("0");
-                                } else {
                                   print("Email: ${_usernameController.text}");
                                   print("Password: ${_passwordController.text}");
                                   print("1");
-                                }
-                                // --- Akhir perubahan logika ---
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF878b94), // Warna tombol tetap #878b94
@@ -250,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   print("Daftar ditekan!");
                                    Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => Daftarscreen(Jenis: widget.Jenis)),
+                                    MaterialPageRoute(builder: (context) => Daftarscreen()),
                                   );
                                 },
                                 child: Text(

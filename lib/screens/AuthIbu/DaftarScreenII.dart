@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Pastikan jalur impor ini benar di proyek Anda
-import 'package:balansing/widgets/menu_button_widget.dart'; // Jika digunakan
-import 'package:balansing/screens/Auth/LoginScreen.dart'; // Jika digunakan untuk navigasi kembali
+// Jika digunakan
+// Jika digunakan untuk navigasi kembali
 
 class DaftarscreenII extends StatefulWidget {
-  final bool Jenis;
-
-  const DaftarscreenII({super.key, required this.Jenis});
+  const DaftarscreenII({super.key});
 
   @override
   State<DaftarscreenII> createState() => _DaftarScreenStateII();
@@ -16,7 +14,6 @@ class DaftarscreenII extends StatefulWidget {
 
 class _DaftarScreenStateII extends State<DaftarscreenII> {
   // States untuk visibilitas password dan controllers untuk input teks
-  bool _isPasswordVisible = false;
   final TextEditingController _namaLengkapController = TextEditingController();
   final TextEditingController _nomorTeleponController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -39,8 +36,7 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
 
     return Scaffold(
       backgroundColor: Colors.white, // Background screen putih
-      body: widget.Jenis // Perkondisian Jenis: true untuk tampilan pendaftaran lengkap
-          ? Stack( // Gunakan Stack untuk menempatkan tombol kembali di atas konten scrollable
+      body: Stack( // Gunakan Stack untuk menempatkan tombol kembali di atas konten scrollable
               children: [
                 // Tombol Kembali di pojok kiri atas
                 Positioned(
@@ -454,7 +450,6 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                       print("Nomor Telepon: ${_nomorTeleponController.text}");
                                       print("Email: ${_emailController.text}");
                                       print("Password: ${_passwordController.text}");
-                                      print("Jenis: ${widget.Jenis ? 0 : 1}"); // Print 0 jika true, 1 jika false
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF878b94), // Warna tombol #878b94
@@ -482,13 +477,6 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                 ),
               ],
             )
-          : const Center( // Jika widget.Jenis adalah false
-              child: Text(
-                "Ini adalah tampilan Daftarscreen untuk Jenis false",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueGrey),
-                textAlign: TextAlign.center,
-              ),
-            ),
     );
   }
 }
