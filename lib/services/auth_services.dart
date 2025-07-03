@@ -1,320 +1,122 @@
+// lib/services/auth_services.dart
 import 'dart:convert';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
-import 'package:balansing/config.dart';
-import 'package:balansing/models/customer.dart' as customer_data;
 import 'package:http/http.dart' as http;
+import 'package:balansing/models/user_model.dart';
+import 'package:balansing/models/kader_model.dart'; 
 
-class AuthService with ChangeNotifier {
+/// Kelas [AuthService] ini menyediakan fungsi-fungsi untuk berinteraksi
+/// dengan API autentikasi dan mengecek status pengguna.
+class AuthService {
+  final String _baseUrl = 'http://10.0.2.2:5500/api/user'; // <--- PASTIKAN INI SESUAI LINGKUNGAN ANDA
 
-  customer_data.Customer? _customer;
-  customer_data.Customer? get customer => _customer;
+  Future<String> loginKader(String email, String password) async {
+    final url = Uri.parse('$_baseUrl/login');
 
-  // Fungsi untuk mendaftarkan pengguna baru
-  Future<String> registration({
-    required String email,
-    required String password,
-  }) async {
     try {
-      final AuthResponse res = await Supabase.instance.client.auth.signUp(
-        email: email,
-        password: password,
-      );
-
-      final User? user = res.user;
-
-      if (user != null) {
-        // Menyimpan data user ke dalam model _customer
-        _customer = customer_data.Customer(
-          id: user.id,  
-          email: email,
-        );
-        
-        return 'Success';
-      } else {
-        return 'Registration failed';
-      }
-    } catch (e) {
-      return 'Error: ${e.toString()}';
-    }
-  }
-
-  // Fungsi untuk mengecek apakah user sudah login
-  Future<bool> isUserLoggedIn() async {
-    final session = Supabase.instance.client.auth.currentSession;
-    if (session != null) {
-      final user = session.user;
-
-      // Menyimpan data user ke dalam _customer jika sudah login
-      _customer = customer_data.Customer(
-        id: user.id,  
-        email: user.email ?? '',
-      );
-          notifyListeners();
-      return true;  
-    } else {
-      return false;  
-    }
-  }
-
-  // Fungsi untuk mendapatkan data customer
-  Future<customer_data.Customer?> getCustomer() async {
-    // Memperbarui customer dengan data dari API
-    _customer = await getCustomerData();
-    notifyListeners();
-
-    return _customer;
-  }
-
-  // Fungsi untuk mengambil data customer dari API
-  Future<customer_data.Customer?> getCustomerData() async {
-    // Mengambil UID dari user yang sedang login
-    final customerUid = Supabase.instance.client.auth.currentSession?.user.id;
-    
-    if (customerUid == null) {
-      return null;
-    }
-
-    final url = Uri.parse('${AppConfig.apiUrl}api/user/$customerUid');
-    
-    try {
-      final response = await http.get(
+      final response = await http.post(
         url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception(jsonDecode(response.body)['message']);
-      } else {
-        final body = jsonDecode(response.body)['data'];
-
-        if (body == null) {
-          return null;
-        }
-        // Mengubah data yang diterima ke dalam model user_data.User
-        return customer_data.Customer.fromJson(body);
-      }
-    } catch (e) {
-      // Menghandle error jika terjadi kesalahan pada API atau jaringan
-      throw Exception('Error fetching user data: $e');
-    }
-  }
-}
-
-  /*
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-
-  user_data.User? _user;
-  user_data.User? get user => _user;
-
-  Future<String> registration({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      User? user = userCredential.user;
-
-      await addRegisterData(user!.uid, email);
-
-      _user = user_data.User(id: user.uid, email: email);
-
-      notifyListeners();
-      return 'Success';
-    } on FirebaseAuthException catch (e) {
-      if (_auth.currentUser != null) {
-        await _auth.currentUser!.delete();
-      }
-
-      if (e.code == 'weak-password') {
-        return 'The password provided is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        return 'The account already exists for that email.';
-      } else {
-        return e.message.toString();
-      }
-    } catch (e) {
-      if (_auth.currentUser != null) {
-        await _auth.currentUser!.delete();
-      }
-      return e.toString();
-    }
-  }
-
-  Future<String> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      final GoogleSignInAuthentication? googleAuth =
-          await googleUser?.authentication;
-
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth?.accessToken,
-        idToken: googleAuth?.idToken,
-      );
-
-      final userCredential = await _auth.signInWithCredential(credential);
-      final user = userCredential.user;
-
-      final existingUser = await getUserData();
-
-      if (existingUser == null) {
-        await addRegisterData(user!.uid, googleUser!.email);
-        _user = user_data.User(id: user.uid, email: googleUser.email);
-      } else {
-        return 'Success';
-      }
-      notifyListeners();
-
-      return 'Success Create';
-    } on Exception catch (e) {
-      return e.toString();
-    }
-  }
-
-  Future<String> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      _user = await getUserData();
-      notifyListeners();
-
-      return 'Success';
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        return 'No user found for that email.';
-      } else if (e.code == 'wrong-password') {
-        return 'Wrong password provided for that user.';
-      } else if (e.code == 'invalid-credential') {
-        return 'Wrong email or password.';
-      } else {
-        return e.message.toString();
-      }
-    } catch (e) {
-      return e.toString();
-    }
-  }
-
-  Future<void> signOut() async {
-    await _auth.signOut();
-    await _googleSignIn.signOut();
-    _user = null;
-    notifyListeners();
-  }
-
-  Future<String> addUserInfo(
-      {required String name,
-      required String username,
-      required File? image}) async {
-    try {
-      String imageUrl =
-          'https://firebasestorage.googleapis.com/v0/b/wicara-6c82d.appspot.com/o/Default.png?alt=media&token=b42dcd9c-aa99-4689-a9cf-de8c63ce468c';
-      
-      if (image != null) {
-        String fileName =
-            'uploads/${DateTime.now().millisecondsSinceEpoch}.png';
-        UploadTask uploadTask = _storage.ref().child(fileName).putFile(image);
-        TaskSnapshot snapshot = await uploadTask;
-        imageUrl = await snapshot.ref.getDownloadURL();
-      }
-
-      final url =
-          Uri.parse('${AppConfig.apiUrl}api/user/${_auth.currentUser!.uid}');
-      print(url);
-      final response = await http.put(
-        url,
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, String>{
-          'name': name,
-          'username': username,
-          'profile_url': imageUrl
+        body: jsonEncode({
+          'email': email,
+          'password': password,
         }),
       );
 
-      if (response.statusCode != 200) {
-        throw Exception(jsonDecode(response.body)['message']);
-      }
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
 
-      _user = user_data.User.fromJson(jsonDecode(response.body)['data']);
-      notifyListeners();
-      return 'Success';
+      if (response.statusCode == 200) {
+        final String token = responseBody['token'];
+        final Map<String, dynamic> userData = responseBody['user'];
+
+        // Pastikan jenis yang dikembalikan adalah 'KADER'
+        // Jika backend sudah memvalidasi ini, langkah ini bisa opsional.
+        // Namun, ini memberikan keamanan ekstra di sisi klien.
+        if (userData['jenis'] != 'KADER') {
+          throw Exception('Jenis akun bukan Kader. Silakan login melalui halaman yang sesuai.');
+        }
+
+        // Perbarui instance User singleton dengan data yang diterima dari server
+        User.instance.email = userData['email'];
+        User.instance.jenis = userData['jenis']; // Seharusnya 'KADER'
+        User.instance.token = token;
+
+        print('DEBUG: Login Kader berhasil! User: ${User.instance.email}, Jenis: ${User.instance.jenis}');
+        return responseBody['message'] ?? 'Login Kader berhasil!';
+      } else if (response.statusCode == 401) {
+        final String errorMessage = responseBody['message'] ?? 'Email atau password salah untuk Kader.';
+        print('ERROR: Login Kader gagal (401): $errorMessage');
+        throw Exception(errorMessage);
+      } else {
+        final String errorMessage = responseBody['message'] ?? 'Terjadi kesalahan server saat login Kader.';
+        print('ERROR: Login Kader gagal (Status ${response.statusCode}): $errorMessage');
+        throw Exception(errorMessage);
+      }
+    } on http.ClientException catch (e) {
+      print('ERROR: Network error during Kader login: $e');
+      throw Exception('Tidak dapat terhubung ke server. Pastikan koneksi internet Anda aktif dan server berjalan.');
     } catch (e) {
-      return e.toString();
+      print('ERROR: An unexpected error occurred during Kader login: $e');
+      throw Exception('Terjadi kesalahan tak terduga. Silakan coba lagi.');
     }
   }
 
-  Future<user_data.User?> getUserData() async {
-    final url =
-        Uri.parse('${AppConfig.apiUrl}api/user/${_auth.currentUser!.uid}');
-    final response = await http.get(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-    );
+  Future<String> registerKader(Kader registrationData) async {
+    final url = Uri.parse('$_baseUrl/registerKader'); // Endpoint registrasi Kader
 
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['message']);
-    } else {
-      final body = jsonDecode(response.body)['data'];
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(registrationData.toJson()), // Mengirim data dari model sebagai JSON
+      );
 
-      if (body == null) {
-        return null;
+      final Map<String, dynamic> responseBody = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        // Registrasi BERHASIL (status 201 Created)
+        print('DEBUG: Registrasi Kader berhasil: ${responseBody['message']}');
+        return responseBody['message'] ?? 'Registrasi kader berhasil!';
+      } else if (response.statusCode == 400) {
+        // Bad Request (misal, field wajib tidak diisi)
+        final String errorMessage = responseBody['message'] ?? 'Data registrasi tidak lengkap atau tidak valid.';
+        print('ERROR: Registrasi gagal (400): $errorMessage');
+        throw Exception(errorMessage);
+      } else if (response.statusCode == 409) {
+        // Conflict (misal, email sudah terdaftar)
+        final String errorMessage = responseBody['message'] ?? 'Email sudah terdaftar.';
+        print('ERROR: Registrasi gagal (409): $errorMessage');
+        throw Exception(errorMessage);
+      } else {
+        // Error lainnya dari server (misal 500 Internal Server Error)
+        final String errorMessage = responseBody['message'] ?? 'Terjadi kesalahan server saat registrasi.';
+        print('ERROR: Registrasi gagal (Status ${response.statusCode}): $errorMessage');
+        throw Exception(errorMessage);
       }
-      return user_data.User.fromJson(jsonDecode(response.body)['data']);
+    } on http.ClientException catch (e) {
+      // Error koneksi jaringan
+      print('ERROR: Network error during Kader registration: $e');
+      throw Exception('Tidak dapat terhubung ke server. Pastikan koneksi internet Anda aktif dan server berjalan.');
+    } catch (e) {
+      // Error tak terduga lainnya
+      print('ERROR: An unexpected error occurred during Kader registration: $e');
+      throw Exception('Terjadi kesalahan tak terduga. Silakan coba lagi.');
     }
   }
 
-  Future<user_data.User?> getUser() async {
-    _user = await getUserData();
-    notifyListeners();
-
-    return _user;
+  // Fungsi pengecekan status token (tetap sama)
+  bool isUserTokenNullOrEmpty() {
+    return User.instance.token.isEmpty;
   }
 
-  Future<void> addRegisterData(String id, String email) async {
-    final url = Uri.parse('${AppConfig.apiUrl}api/user');
-    final response = await http.post(
-      url,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'id': id,
-        'email': email,
-      }),
-    );
-
-    if (response.statusCode != 201) {
-      throw Exception(jsonDecode(response.body)['message']);
+  // Fungsi untuk mendapatkan jenis user (tetap sama)
+  String? getUserType() {
+    if (User.instance.jenis.isEmpty) {
+      return null;
     }
+    return User.instance.jenis;
   }
-
-  Future<bool> isUserLoggedIn() async {
-    final User? user = _auth.currentUser;
-
-    if (user != null) {
-      _user = await getUserData();
-    }
-
-    notifyListeners();
-
-    return user != null;
-  } */
+}

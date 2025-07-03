@@ -1,22 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:balansing/screens/AuthKader/ConfirmDaftar.dart'; // Pastikan jalur impor ini benar di proyek Anda
-// Pastikan jalur impor ini benar di proyek Anda
-// Jika digunakan
-// Jika digunakan untuk navigasi kembali
-
+import 'package:balansing/screens/AuthKader/ConfirmDaftar.dart';
+import 'package:balansing/models/kader_model.dart'; // Ensure this path is correct
+import 'package:balansing/services/auth_services.dart'; // <-- IMPORT YOUR AUTH SERVICE HERE
 
 class DaftarscreenII extends StatefulWidget {
-  const DaftarscreenII({super.key});
+  final String initialEmail;
+  final String initialPassword;
+
+  const DaftarscreenII({
+    super.key,
+    required this.initialEmail,
+    required this.initialPassword,
+  });
 
   @override
   State<DaftarscreenII> createState() => _DaftarScreenStateII();
 }
 
 class _DaftarScreenStateII extends State<DaftarscreenII> {
-
   final TextEditingController _puskesmasController = TextEditingController();
-  final TextEditingController _posyanduController = TextEditingController();
+  final TextEditingController _posyanduController = TextEditingController(); // Added Posyandu Controller
   final TextEditingController _provinsiController = TextEditingController();
   final TextEditingController _kotaController = TextEditingController();
   final TextEditingController _kecamatanController = TextEditingController();
@@ -24,43 +28,152 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
   final TextEditingController _rtController = TextEditingController();
   final TextEditingController _rwController = TextEditingController();
 
+  final AuthService _authService = AuthService(); // <-- Instantiate your AuthService
+
+  @override
+  void initState() {
+    super.initState();
+    _puskesmasController.addListener(_updateButtonState);
+    _posyanduController.addListener(_updateButtonState); // Add listener for posyandu
+    _provinsiController.addListener(_updateButtonState);
+    _kotaController.addListener(_updateButtonState);
+    _kecamatanController.addListener(_updateButtonState);
+    _kelurahanController.addListener(_updateButtonState);
+    _rtController.addListener(_updateButtonState);
+    _rwController.addListener(_updateButtonState);
+    _updateButtonState();
+  }
+
+  @override
+  void dispose() {
+    _puskesmasController.dispose();
+    _posyanduController.dispose(); // Dispose posyandu controller
+    _provinsiController.dispose();
+    _kotaController.dispose();
+    _kecamatanController.dispose();
+    _kelurahanController.dispose();
+    _rtController.dispose();
+    _rwController.dispose();
+    super.dispose();
+  }
+
+  bool _buttonEnabled = false;
+
+  void _updateButtonState() {
+    setState(() {
+      _buttonEnabled = _puskesmasController.text.isNotEmpty &&
+          _provinsiController.text.isNotEmpty &&
+          _kotaController.text.isNotEmpty &&
+          _kecamatanController.text.isNotEmpty &&
+          _kelurahanController.text.isNotEmpty &&
+          _rtController.text.isNotEmpty &&
+          _rwController.text.isNotEmpty &&
+          _posyanduController.text.isNotEmpty; // Added posyandu to validation
+    });
+  }
+
+  Future<void> _performRegistration() async {
+    if (!_buttonEnabled) {
+      return;
+    }
+
+    final Kader completeKaderData = Kader(
+      email: widget.initialEmail,
+      password: widget.initialPassword,
+      namaPuskesmas: _puskesmasController.text,
+      namaPosyandu: _posyanduController.text, // Pass posyandu text
+      provinsi: _provinsiController.text,
+      kota: _kotaController.text,
+      kecamatan: _kecamatanController.text,
+      kelurahan: _kelurahanController.text,
+      rt: _rtController.text,
+      rw: _rwController.text,
+    );
+
+    // Debugging: Print all data from the complete Kader object
+    print("Complete Kader Data for Registration (from Kader model):");
+    print("Email: ${completeKaderData.email}");
+    // print("Password: ${completeKaderData.password}"); // Be cautious with logging sensitive data in production
+    print("Nama Puskesmas: ${completeKaderData.namaPuskesmas}");
+    print("Nama Posyandu: ${completeKaderData.namaPosyandu}"); // Print namaPosyandu
+    print("Provinsi: ${completeKaderData.provinsi}");
+    print("Kota: ${completeKaderData.kota}");
+    print("Kecamatan: ${completeKaderData.kecamatan}");
+    print("Kelurahan: ${completeKaderData.kelurahan}");
+    print("RT: ${completeKaderData.rt}");
+    print("RW: ${completeKaderData.rw}");
+
+    // You can also print the JSON representation
+    print("Kader JSON: ${completeKaderData.toJson()}");
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Mendaftarkan akun..."),
+              ],
+            ),
+          );
+        },
+      );
+
+      // --- Call your actual registration service here ---
+      final String registrationMessage = await _authService.registerKader(completeKaderData);
+
+      Navigator.pop(context); // Close loading dialog
+
+      // If registration successful, show a success message and navigate to ConfirmDaftar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(registrationMessage),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const Confirmdaftar()),
+      );
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog on error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')), // Clean up "Exception: " prefix
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
-    // Menambahkan validasi email dan panjang password ke kondisi buttonEnabled
-    bool buttonEnabled = true;
-
-    buttonEnabled = _puskesmasController.text.isNotEmpty &&
-        _posyanduController.text.isNotEmpty &&
-        _provinsiController.text.isNotEmpty &&
-        _kotaController.text.isNotEmpty &&
-        _kecamatanController.text.isNotEmpty &&
-        _kelurahanController.text.isNotEmpty &&
-        _rtController.text.isNotEmpty &&
-        _rwController.text.isNotEmpty;
-
-    final Color buttonColor = buttonEnabled ? const Color(0xFF9FC86A) : const Color(0xFF878b94);
+    final Color buttonColor = _buttonEnabled ? const Color(0xFF9FC86A) : const Color(0xFF878b94);
 
     return Scaffold(
-      backgroundColor: Colors.white, // Background screen putih
+      backgroundColor: Colors.white,
       body: Stack(
-        // Gunakan Stack untuk menempatkan tombol kembali di atas konten scrollable
         children: [
-          // Row untuk tombol Kembali dan teks Langkah 1 dari 2
           Positioned(
-            top: height * 0.07, // Sesuaikan jarak dari atas
-            left: width * 0.05, // Sesuaikan jarak dari kiri
-            right: width * 0.07, // Sesuaikan jarak dari kanan untuk lebar 0.9
+            top: height * 0.07,
+            left: width * 0.05,
+            right: width * 0.07,
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Sejajarkan ke kiri dan kanan
-              crossAxisAlignment: CrossAxisAlignment.center, // Pusatkan secara vertikal
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Tombol Kembali
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context); // Fungsi kembali
+                    Navigator.pop(context);
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -85,7 +198,7 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                         child: const Icon(
                           Icons.arrow_back,
                           color: Color(0xFF020617),
-                          size: 20.0, // Ukuran ikon
+                          size: 20.0,
                         ),
                       ),
                       const SizedBox(width: 8.0),
@@ -100,22 +213,19 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                     ],
                   ),
                 ),
-                // Teks Langkah 1 dari 2
                 Text(
                   "Langkah 2 dari 2",
                   style: GoogleFonts.poppins(
                     color: const Color(0xFFA1A1AA),
-                    fontSize: width * 0.03, // Sesuaikan ukuran font jika perlu
+                    fontSize: width * 0.03,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
             ),
           ),
-
-          // Konten utama yang bisa di-scroll
           Positioned(
-            top: height * 0.13, // Sesuaikan posisi awal konten utama di bawah header baru
+            top: height * 0.13,
             left: 0,
             right: 0,
             bottom: 0,
@@ -125,7 +235,6 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // CONTAINER BESAR UNTUK SEMUA ELEMEN FORM
                   Container(
                     width: width * 0.9,
                     padding: const EdgeInsets.all(20.0),
@@ -140,7 +249,6 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Container untuk teks "Daftar" dan "Satu Langkah Anda..."
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -166,7 +274,6 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                             ),
                           ],
                         ),
-
                         Container(
                           height: height * 0.025,
                           width: width * 1,
@@ -179,8 +286,6 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                             ),
                           ),
                         ),
-
-                        // Container untuk semua input fields (dengan scrollability)
                         Container(
                           constraints: BoxConstraints(maxHeight: height * 0.6, minHeight: height * 0.6),
                           child: SingleChildScrollView(
@@ -197,9 +302,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _puskesmasController, // Pastikan controller ini didefinisikan
+                                  controller: _puskesmasController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan nama puskesmas",
                                     hintStyle: GoogleFonts.poppins(
@@ -212,12 +317,11 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
+                                // --- Input for Nama Posyandu ---
                                 Text(
-                                  "Nama posyandu",
+                                  "Nama Posyandu",
                                   style: GoogleFonts.poppins(
                                     color: Colors.black,
                                     fontSize: width * 0.035,
@@ -225,11 +329,11 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _posyanduController, // Pastikan controller ini didefinisikan
+                                  controller: _posyanduController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
-                                    hintText: "Masukan nama posyandu",
+                                    hintText: "Masukan nama Posyandu",
                                     hintStyle: GoogleFonts.poppins(
                                       color: const Color(0xFF64748B),
                                     ),
@@ -240,10 +344,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
+                                // --- End of Input for Nama Posyandu ---
                                 Text(
                                   "Provinsi",
                                   style: GoogleFonts.poppins(
@@ -253,9 +356,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _provinsiController, // Pastikan controller ini didefinisikan
+                                  controller: _provinsiController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan nama Provinsi",
                                     hintStyle: GoogleFonts.poppins(
@@ -268,10 +371,8 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
                                 Text(
                                   "Kota",
                                   style: GoogleFonts.poppins(
@@ -281,9 +382,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _kotaController, // Pastikan controller ini didefinisikan
+                                  controller: _kotaController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan nama kota",
                                     hintStyle: GoogleFonts.poppins(
@@ -296,10 +397,8 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
                                 Text(
                                   "Kecamatan",
                                   style: GoogleFonts.poppins(
@@ -309,9 +408,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _kecamatanController, // Pastikan controller ini didefinisikan
+                                  controller: _kecamatanController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan nama kecamatan",
                                     hintStyle: GoogleFonts.poppins(
@@ -324,10 +423,8 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
                                 Text(
                                   "Kelurahan",
                                   style: GoogleFonts.poppins(
@@ -337,9 +434,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _kelurahanController, // Pastikan controller ini didefinisikan
+                                  controller: _kelurahanController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan nama kelurahan",
                                     hintStyle: GoogleFonts.poppins(
@@ -352,10 +449,8 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
                                 Text(
                                   "RT",
                                   style: GoogleFonts.poppins(
@@ -365,9 +460,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _rtController, // Pastikan controller ini didefinisikan
+                                  controller: _rtController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan RT",
                                     hintStyle: GoogleFonts.poppins(
@@ -380,10 +475,8 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
                                 Text(
                                   "RW",
                                   style: GoogleFonts.poppins(
@@ -393,9 +486,9 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                   ),
                                 ),
                                 SizedBox(height: height * 0.01),
-                                // Input Email
                                 TextField(
-                                  controller: _rwController, // Pastikan controller ini didefinisikan
+                                  controller: _rwController,
+                                  onChanged: (_) => _updateButtonState(),
                                   decoration: InputDecoration(
                                     hintText: "Masukan RW",
                                     hintStyle: GoogleFonts.poppins(
@@ -408,45 +501,20 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                                     contentPadding:
                                         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                   ),
-                                ),           
-
+                                ),
                                 SizedBox(height: height * 0.02),
-
-                                
-              
                               ],
                             ),
                           ),
                         ),
-
-                        SizedBox(height: height * 0.045), // Jarak sebelum tombol Lanjut
-
-                        // Container untuk tombol Lanjut
+                        SizedBox(height: height * 0.045),
                         SizedBox(
                           width: double.infinity,
                           height: height * 0.04,
                           child: ElevatedButton(
-                            onPressed:(){
-                                  print("Lanjut button pressed");
-                                  print("Puskesmas: ${_puskesmasController.text}");
-                                  print("Posyandu: ${_posyanduController.text}");
-                                  print("Provinsi: ${_provinsiController.text}");
-                                  print("Kota: ${_kotaController.text}");
-                                  print("Kecamatan: ${_kecamatanController.text}");
-                                  print("Kelurahan: ${_kelurahanController.text}");
-                                  print("RT: ${_rtController.text}");
-                                  print("RW: ${_rwController.text}");
-                                  
-                                  if(buttonEnabled) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => Confirmdaftar()),
-                                    );
-                                  }
-                                    
-                                },
+                            onPressed: _buttonEnabled ? _performRegistration : null,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonColor, // Warna tombol #878b94
+                              backgroundColor: buttonColor,
                               minimumSize: Size(width * 0.9, height * 0.05),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8.0),

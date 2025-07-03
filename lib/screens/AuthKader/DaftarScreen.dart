@@ -467,7 +467,7 @@ class _DaftarScreenState extends State<Daftarscreen> {
                           ),
                         ),
 
-                        SizedBox(height: height * 0.045), // Jarak sebelum tombol Lanjut
+                        SizedBox(height: height * 0.025), // Jarak sebelum tombol Lanjut
 
                         // Container untuk tombol Lanjut
                         SizedBox(
@@ -483,7 +483,7 @@ class _DaftarScreenState extends State<Daftarscreen> {
 
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => DaftarscreenII()),
+                                      MaterialPageRoute(builder: (context) => DaftarscreenII(initialEmail: _emailController.text, initialPassword: _passwordController.text,)),
                                     );
                                   }
                                 : null, // Tombol nonaktif jika buttonEnabled false
@@ -504,6 +504,34 @@ class _DaftarScreenState extends State<Daftarscreen> {
                             ),
                           ),
                         ),
+                        Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Sudah Punya Akun? ",
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF64748B),
+                            fontSize: width * 0.03,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            print("Daftar ditekan!");
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            "Masuk!",
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF9FC86A),
+                              fontSize: width * 0.03,
+                              fontWeight: FontWeight.w300,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                       ],
                     ),
                   ),
