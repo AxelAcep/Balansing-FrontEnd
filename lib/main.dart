@@ -33,11 +33,6 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider( 
       providers: [
         ChangeNotifierProvider(create: (context) => AuthService()),
-        /*
-        ChangeNotifierProxyProvider<AuthService, CatatanService>(
-            create: (context) => CatatanService(context.read<AuthService>()),
-            update: (context, authService, catatanService) => CatatanService(authService),
-          ), */
       ], 
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
