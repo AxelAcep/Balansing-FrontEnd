@@ -10,9 +10,6 @@ import 'package:balansing/models/user_model.dart' as app_user;
 // Import your AuthService
 import 'package:balansing/services/auth_services.dart';
 
-// Supabase and gotrue
-import 'package:supabase_flutter/supabase_flutter.dart';
-// FIX HERE: Add 'as supabase_auth' prefix to the gotrue User import
 
 // Other screens
 import 'package:balansing/screens/onboarding_screen.dart';
@@ -23,10 +20,6 @@ import 'package:balansing/screens/Ibu/ibu_dashboard_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://fqpalkzlylkiqmnsizji.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxcGFsa3pseWxraXFtbnNpemppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA2NDE0MDcsImV4cCI6MjA2NjIxNzQwN30.RSl9KRyaBjYMPQvR48CsiAfileL4RS7YWqdUunqx5ug',
-  );
 
   await initializeDateFormatting('id_ID', null);
 

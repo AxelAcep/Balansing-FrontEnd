@@ -7,7 +7,36 @@ import 'package:balansing/models/kader_model.dart';
 /// Kelas [AuthService] ini menyediakan fungsi-fungsi untuk berinteraksi
 /// dengan API autentikasi dan mengecek status pengguna.
 class AuthService {
-  final String _baseUrl = 'http://10.0.2.2:5500/api/user'; // <--- PASTIKAN INI SESUAI LINGKUNGAN ANDA
+  final String _baseUrl = 'http://10.0.2.2:5500/api/user'; 
+
+
+Future<String> resetPassword(String email) async { // Nama fungsi lebih baik diawali huruf kecil
+    final url = Uri.parse('$_baseUrl/forgetPass');
+    print(url);
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      // Periksa status kode respons
+      if (response.statusCode == 200) { // Gunakan '==' untuk perbandingan, bukan '=' untuk assignment
+        return response.body; 
+      } else {
+        final Map<String, dynamic> errorBody = jsonDecode(response.body);
+        throw Exception('Gagal reset password. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+      }
+    } catch (e) {
+      // Tangani error jaringan atau error lainnya
+      print('Terjadi kesalahan saat reset password: $e'); // Untuk debug
+      throw Exception('Terjadi kesalahan jaringan atau server: $e'); // Lemparkan Exception
+    }
+}
 
   Future<String> loginKader(String email, String password) async {
     final url = Uri.parse('$_baseUrl/login');

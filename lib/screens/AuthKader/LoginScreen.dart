@@ -1,4 +1,5 @@
 import 'package:balansing/screens/AuthKader/DaftarScreen.dart';
+import 'package:balansing/screens/ForgotScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/services/auth_services.dart';
@@ -54,9 +55,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (mounted) {
         // Karena ini adalah Login Kader, navigasi langsung ke KaderDashboardScreen
-        Navigator.pushReplacement(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const KaderDashboardScreen()), // <--- Navigasi langsung ke Kader Dashboard
+          (Route<dynamic> route) => false,
         );
       }
 
@@ -190,6 +192,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextButton(
                           onPressed: () {
                             print("Lupa Password ditekan!");
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => Forgotscreen()),
+                            );
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
