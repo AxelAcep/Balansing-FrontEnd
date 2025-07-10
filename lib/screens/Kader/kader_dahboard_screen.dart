@@ -44,15 +44,15 @@ class _KaderDashboardScreenState extends State<KaderDashboardScreen> {
       bottomNavigationBar: SizedBox( height: height*0.1,   child: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.history, size: _selectedIndex == 0 ? width*0.08 : width*0.05), // Icon untuk Riwayat
+            icon: Icon(Icons.history, size: _selectedIndex == 0 ? height*0.037 : height*0.03), // Icon untuk Riwayat
             label: 'Riwayat',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.home, size: _selectedIndex == 1 ? width*0.08 : width*0.05), // Icon untuk Beranda
+            icon: Icon(Icons.home, size: _selectedIndex == 1 ? height*0.037 : height*0.03), // Icon untuk Beranda
             label: 'Beranda',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person,  size: _selectedIndex == 2 ? width*0.08 : width*0.05), // Icon untuk Profil
+            icon: Icon(Icons.person,  size: _selectedIndex == 2 ? height*0.037 : height*0.03), // Icon untuk Profil
             label: 'Profil',
           ),
         ],
@@ -61,6 +61,8 @@ class _KaderDashboardScreenState extends State<KaderDashboardScreen> {
         unselectedItemColor: const Color(0xFF64748B), // Warna icon/teks yang tidak dipilih
         onTap: _onItemTapped, // Fungsi yang dipanggil saat item ditekan
         backgroundColor: Colors.white,
+        selectedFontSize: height*0.02,
+        unselectedFontSize: height*0.015,
         type: BottomNavigationBarType.fixed, // Agar semua item terlihat jelas
         selectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w500),
         unselectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w300),

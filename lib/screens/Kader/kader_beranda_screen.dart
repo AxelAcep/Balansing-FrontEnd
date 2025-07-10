@@ -1,3 +1,4 @@
+import 'package:balansing/screens/Kader/Beranda/kaderTambahI.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart'; // Untuk fl_chart
@@ -128,7 +129,6 @@ class _BerandaScreenState extends State<BerandaScreen> {
               SizedBox(height: height * 0.05),
               Container(
                 width: width * 0.9,
-                height: height * 0.18,
                 decoration: const BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
@@ -164,12 +164,12 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                 color: const Color.fromARGB(255, 100, 116, 139),
                                 fontWeight: FontWeight.w400,
                               ),
-                            )
+                            ),
                           ],
                         ),
                         Container(
-                          width: width * 0.14,
-                          height: width * 0.14,
+                          width: height * 0.07,
+                          height: height * 0.07,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
                             image: DecorationImage(
@@ -186,7 +186,10 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     ElevatedButton(
                       onPressed: () {
                         print("Test123");
-                        // Anda bisa menambahkan _updateAgeDistributionData() di sini jika tombol ini relevan
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => KaderTambahI()),
+                          );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF9FC86A),
@@ -206,33 +209,33 @@ class _BerandaScreenState extends State<BerandaScreen> {
                       ),
                     ),
                     SizedBox(height: height * 0.005),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/circle-alert.png',
-                          width: height * 0.02,
-                          height: height * 0.02,
-                          fit: BoxFit.cover,
-                        ),
-                        SizedBox(width: width * 0.01),
-                        Text(
-                          "Pengecekan selanjutnya: 4 Juli 2025",
-                          style: GoogleFonts.poppins(
-                            fontSize: height * 0.013,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xFF94A3B8),
+                    Container( height: height*0.03,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/circle-alert.png',
+                            width: height * 0.02,
+                            height: height * 0.02,
+                            fit: BoxFit.cover,
                           ),
-                        )
-                      ],
-                    )
+                          SizedBox(width: width * 0.01),
+                          Text(
+                            "Pengecekan selanjutnya: 4 Juli 2025",
+                            style: GoogleFonts.poppins(
+                              fontSize: height * 0.013,
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ],
+                      ))
                   ],
                 ),
               ),
               SizedBox(height: height * 0.02),
               Container(
-                height: height * 0.1,
                 color: Colors.transparent,
                 width: width * 0.9,
                 child: Column(
@@ -258,7 +261,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: EdgeInsets.symmetric(
-                                  horizontal: width * 0.025, vertical: 10),
+                                  horizontal: width * 0.025, vertical: height*0.01),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? const Color(0xFFF4F9EC)
@@ -276,7 +279,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                 style: TextStyle(
                                   color: const Color(0xFF64748B),
                                   fontWeight: FontWeight.w600,
-                                  fontSize: width * 0.03,
+                                  fontSize: height * 0.013,
                                 ),
                               ),
                             ),
@@ -289,7 +292,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: width * 0.025, vertical: 10),
+                                horizontal: width * 0.025,vertical: height*0.013),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(10),
@@ -304,7 +307,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                 Icon(
                                   Icons.filter_list,
                                   color: const Color(0xFF64748B),
-                                  size: width * 0.04,
+                                  size:  height*0.012,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
@@ -312,7 +315,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                   style: TextStyle(
                                     color: const Color(0xFF64748B),
                                     fontWeight: FontWeight.w600,
-                                    fontSize: width * 0.03,
+                                    fontSize:  height*0.01,
                                   ),
                                 ),
                               ],

@@ -42,7 +42,6 @@ class _ProfilScreenState extends State<ProfilScreen> {
           children: [
             SizedBox(height: height * 0.1),
             Container(
-              height: height * 0.32,
               width: width * 0.9,
               color: Colors.transparent,
               child: Column(
@@ -67,7 +66,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     "Puskemas Anak Mawar",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                      fontSize: width * 0.06,
+                      fontSize: height * 0.027,
                       fontWeight: FontWeight.w600,
                       color: Colors.black,
                     ),
@@ -76,7 +75,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     "Posyandu Bekasi",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                      fontSize: width * 0.04,
+                      fontSize: height * 0.018,
                       fontWeight: FontWeight.w400,
                       color: const Color(0xFF64748B),
                     ),
@@ -85,7 +84,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     "RT. 04 / RW. 01",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                      fontSize: width * 0.04,
+                      fontSize: height * 0.018,
                       fontWeight: FontWeight.w400,
                       color: const Color(0xFF64748B),
                     ),
@@ -96,7 +95,6 @@ class _ProfilScreenState extends State<ProfilScreen> {
             ),
             Container(
               width: width * 0.9,
-              height: height * 0.28,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -105,7 +103,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     "Detail Pribadi",
                     style: GoogleFonts.poppins(
                       color: Colors.black,
-                      fontSize: width * 0.035,
+                      fontSize: height * 0.017,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -128,14 +126,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
                           "Informasi dasar",
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
-                            fontSize: width * 0.035,
+                            fontSize: height * 0.017,
                             color: Colors.black,
                           ),
                         ),
                         Icon(
                           Icons.keyboard_arrow_right,
                           color: Colors.black,
-                          size: width * 0.06,
+                          size: height * 0.023,
                         ),
                       ],
                     ),
@@ -145,7 +143,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     "Keamanan dan Privasi",
                     style: GoogleFonts.poppins(
                       color: Colors.black,
-                      fontSize: width * 0.035,
+                      fontSize: height * 0.017,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -168,14 +166,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
                           "Ubah password",
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
-                            fontSize: width * 0.035,
+                            fontSize: height * 0.017,
                             color: Colors.black,
                           ),
                         ),
                         Icon(
                           Icons.keyboard_arrow_right,
                           color: Colors.black,
-                          size: width * 0.06,
+                          size: height * 0.023,
                         ),
                       ],
                     ),
@@ -200,14 +198,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
                           "Ubah email",
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
-                            fontSize: width * 0.035,
+                            fontSize: height * 0.017,
                             color: Colors.black,
                           ),
                         ),
                         Icon(
                           Icons.keyboard_arrow_right,
                           color: Colors.black,
-                          size: width * 0.06,
+                          size: height * 0.023,
                         ),
                       ],
                     ),
@@ -215,6 +213,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                 ],
               ),
             ),
+            SizedBox(height: height*0.02),
             ElevatedButton(
               onPressed: _handleLogout,
               style: ElevatedButton.styleFrom(
@@ -230,7 +229,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                   ),
                 ),
                 textStyle: GoogleFonts.poppins(
-                  fontSize: width * 0.04,
+                  fontSize: height * 0.02,
                   fontWeight: FontWeight.w400,
                 ),
               ),

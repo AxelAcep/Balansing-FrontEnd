@@ -67,12 +67,12 @@ class _PathScreen extends State<PathScreen> {
               child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Pilih Role Anda", style: GoogleFonts.poppins(
-                    fontSize: 28,
+                    fontSize: height*0.03,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF76A73B),
                   ),),
                   Text("Mulai perjalananmu sesuai peran. Pilih sebagai Ibu atau Kader dan nikmati fitur yang dibuat khusus buat Anda", style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: height*0.013,
                     fontWeight: FontWeight.w400,
                     color: Color(0xFF64748B),
                   ),),
@@ -119,7 +119,7 @@ class _PathScreen extends State<PathScreen> {
                                   Text(
                                     "Role Kader",
                                     style: GoogleFonts.poppins(
-                                      fontSize: 16,
+                                      fontSize: height*0.018,
                                       fontWeight: FontWeight.w600,
                                       color: const Color(0xFF020617),
                                     ),
@@ -127,7 +127,7 @@ class _PathScreen extends State<PathScreen> {
                                   Text(
                                     "Akses data ibu & anak, catat kunjungan, dan bantu mereka tumbuh sehat",
                                     style: GoogleFonts.poppins(
-                                      fontSize: 12,
+                                      fontSize: height*0.012,
                                       fontWeight: FontWeight.w400,
                                       color: const Color(0xFF64748B),
                                     ),
@@ -193,7 +193,7 @@ class _PathScreen extends State<PathScreen> {
                                   Text(
                                     "Role Ibu",
                                     style: GoogleFonts.poppins(
-                                      fontSize: 16,
+                                      fontSize: height*0.018,
                                       fontWeight: FontWeight.w600,
                                       color: const Color(0xFF020617),
                                     ),
@@ -201,7 +201,7 @@ class _PathScreen extends State<PathScreen> {
                                   Text(
                                     "Satu klik buat bantu Anda menjadi “Pahlawan Anak” di dunia nyata",
                                     style: GoogleFonts.poppins(
-                                      fontSize: 12,
+                                      fontSize: height*0.012,
                                       fontWeight: FontWeight.w400,
                                       color: const Color(0xFF64748B),
                                     ),
