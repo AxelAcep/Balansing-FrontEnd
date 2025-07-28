@@ -159,18 +159,18 @@ class _ChildCardState extends State<ChildCard> {
                 mainAxisSize: MainAxisSize.min, // Make row only as wide as its children
                 children: [
                   Container(
-                    width: width * 0.02,
-                    height: width * 0.02,
+                    width: width * 0.025,
+                    height: width * 0.025,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: currentStatus.color,
                     ),
                   ),
-                  SizedBox(width: width * 0.01),
+                  SizedBox(width: width * 0.02),
                   Text(
                     currentStatus.title,
                     style: GoogleFonts.poppins(
-                      fontSize: height * 0.015,
+                      fontSize: height * 0.016,
                       fontWeight: FontWeight.w500, // Slightly bolder for the status text
                       color: Colors.black,
                     ),
@@ -178,7 +178,7 @@ class _ChildCardState extends State<ChildCard> {
                 ],
               ),
             ),
-          SizedBox(height: height * 0.015),
+          SizedBox(height: height * 0.005),
 
           // Sembunyikan/Tampilkan Informasi Button
           GestureDetector(

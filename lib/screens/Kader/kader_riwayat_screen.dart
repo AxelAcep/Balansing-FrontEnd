@@ -217,24 +217,22 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                 child: Container(
                   width: width * 0.9,
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.05), // Lighter background for the list area
-                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.transparent,
                   ),
                   child: Scrollbar(
                     thumbVisibility: false,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _dummyChildren.length, // Use the new dummy data
-                      itemBuilder: (context, index) {
-                        final childData = _dummyChildren[index];
-                        return ChildCard(
-                          name: childData['name']!,
-                          age: childData['age']!,
-                          gender: childData['gender']!,
-                          measurements: childData['measurements']!,
-                          statusType: childData['status']!, // Pass the status type
-                        );
-                      },
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: _dummyChildren.map((childData) {
+                          return ChildCard(
+                            name: childData['name']!,
+                            age: childData['age']!,
+                            gender: childData['gender']!,
+                            measurements: childData['measurements']!,
+                            statusType: childData['status']!,
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),

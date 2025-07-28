@@ -18,7 +18,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
   final TextEditingController _tbController = TextEditingController(); // Controller for TB
 
   DateTime? _selectedDate;
-  String? _selectedGender; // State variable for selected gender
+  //String? _selectedGender; // State variable for selected gender
 
   // State variables for new selections
   String? _selectedKonjungtiva;
