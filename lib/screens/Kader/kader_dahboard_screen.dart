@@ -35,7 +35,7 @@ class _KaderDashboardScreenState extends State<KaderDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    //double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: IndexedStack( // Menggunakan IndexedStack untuk menjaga state halaman
         index: _selectedIndex,

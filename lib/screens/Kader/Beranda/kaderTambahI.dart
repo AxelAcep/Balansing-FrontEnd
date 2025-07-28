@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:balansing/screens/Kader/Beranda/kaderTambahII.dart';
 
 class KaderTambahI extends StatefulWidget {
   const KaderTambahI({super.key});
@@ -606,6 +607,10 @@ class _KaderTambahIState extends State<KaderTambahI> {
                   child: ElevatedButton(
                     onPressed: () {
                       print('Selanjutnya pressed');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => KaderTambahII()),
+                          );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF9FC86A),
