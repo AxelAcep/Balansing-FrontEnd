@@ -1,0 +1,116 @@
+class AnakKader {
+  String? email; // Tambahkan properti email
+  DateTime? tanggalPemeriksaan;
+  String? namaIbu;
+  String? namaAnak;
+  int? umurTahun;
+  int? umurBulan;
+  double? beratBadan;
+  double? tinggiBadan;
+  String? jenisKelamin;
+  String? id;
+
+  bool? konjungtivitaNormal;
+  bool? kukuBersih;
+  bool? tampakLemas;
+  bool? tampakPucat;
+  bool? riwayatAnemia;
+
+  AnakKader({
+    this.email, // Inisialisasi email
+    this.tanggalPemeriksaan,
+    this.namaIbu,
+    this.namaAnak,
+    this.umurTahun,
+    this.umurBulan,
+    this.beratBadan,
+    this.tinggiBadan,
+    this.jenisKelamin,
+    this.konjungtivitaNormal,
+    this.kukuBersih,
+    this.tampakLemas,
+    this.tampakPucat,
+    this.riwayatAnemia,
+    this.id,
+  });
+
+  void reset() {
+    email = null; // Reset email
+    tanggalPemeriksaan = null;
+    namaIbu = null;
+    namaAnak = null;
+    umurTahun = null;
+    umurBulan = null;
+    beratBadan = null;
+    tinggiBadan = null;
+    jenisKelamin = null;
+    konjungtivitaNormal = null;
+    kukuBersih = null;
+    tampakLemas = null;
+    tampakPucat = null;
+    riwayatAnemia = null;
+    this.id = null; // Reset id
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'email': email, // Sertakan email dalam JSON
+      'tanggalPemeriksaan': tanggalPemeriksaan?.toIso8601String(),
+      'namaIbu': namaIbu,
+      'namaAnak': namaAnak,
+      'umurTahun': umurTahun,
+      'umurBulan': umurBulan,
+      'beratBadan': beratBadan,
+      'tinggiBadan': tinggiBadan,
+      'jenisKelamin': jenisKelamin,
+      'konjungtivitaNormal': konjungtivitaNormal,
+      'kukuBersih': kukuBersih,
+      'tampakLemas': tampakLemas,
+      'tampakPucat': tampakPucat,
+      'riwayatAnemia': riwayatAnemia,
+      'id': id, // Sertakan id dalam JSON
+    };
+  }
+
+  factory AnakKader.fromJson(Map<String, dynamic> json) {
+    return AnakKader(
+      email: json['email'], // Ambil email dari JSON
+      tanggalPemeriksaan: json['tanggalPemeriksaan'] != null
+          ? DateTime.parse(json['tanggalPemeriksaan'])
+          : null,
+      namaIbu: json['namaIbu'],
+      namaAnak: json['namaAnak'],
+      umurTahun: json['umurTahun'],
+      umurBulan: json['umurBulan'],
+      beratBadan: json['beratBadan']?.toDouble(),
+      tinggiBadan: json['tinggiBadan']?.toDouble(),
+      jenisKelamin: json['jenisKelamin'],
+      konjungtivitaNormal: json['konjungtivitaNormal'],
+      kukuBersih: json['kukuBersih'],
+      tampakLemas: json['tampakLemas'],
+      tampakPucat: json['tampakPucat'],
+      riwayatAnemia: json['riwayatAnemia'],
+      id: json['id'], // Ambil id dari JSON
+    );
+  }
+}
+
+class AnakKaderDataManager {
+  static final AnakKaderDataManager _instance = AnakKaderDataManager._internal();
+
+  factory AnakKaderDataManager() {
+    return _instance;
+  }
+
+  AnakKaderDataManager._internal();
+
+  AnakKader currentAnakKader = AnakKader();
+
+  void clearData() {
+    currentAnakKader = AnakKader();
+  }
+
+  AnakKader getData() {
+    return currentAnakKader;
+  }
+}

@@ -1,11 +1,11 @@
 import 'dart:convert';
-
 import 'package:balansing/services/kader_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/models/user_model.dart';
 import 'package:balansing/screens/onboarding_screen.dart';
 import 'package:balansing/screens/Kader/Profile/kader_informasi_screen.dart';
+import 'package:balansing/screens/Kader/Profile/kader_password_screen.dart';
 
 class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});
@@ -22,52 +22,46 @@ class _ProfilScreenState extends State<ProfilScreen> {
   String _rt = "Tidak Tersedia";
   String _rw = "Tidak Tersedia";
 
-  // Tambahkan flag untuk mencegah pemanggilan berulang
-  bool _dataFetched = false; 
-
   @override
   void initState() {
     super.initState();
-    _fetchKaderProfile();
-    // initState bisa tetap ada jika ada inisialisasi lain yang hanya perlu sekali
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Panggil _fetchKaderProfile hanya jika belum dipanggil
-    // atau jika Anda ingin data selalu diperbarui setiap kali dependensi berubah.
-    // Jika data hanya perlu dimuat sekali saat pertama kali layar terlihat, gunakan flag.
-    _fetchKaderProfile();
-    if (!_dataFetched) {
-      _fetchKaderProfile();
-      _dataFetched = true; // Set flag setelah data diambil
-    }
+    _fetchKaderProfile(); // Fetch data once when the screen is initialized
   }
 
   Future<void> _fetchKaderProfile() async {
-    try {
-      if (User.instance.email.isNotEmpty) {
-        Map<String, dynamic> data = await _kaderServices.getKader(User.instance.email);
+    // Add a check to prevent fetching if email is already empty or data is already being fetched
+    if (User.instance.email.isEmpty) {
+      setState(() {
+        _kaderProfileRawData = "Email pengguna tidak tersedia.";
+        _namaPuskesmas = "Email tidak tersedia";
+        _posyandu = "Email tidak tersedia";
+        _rt = "Email tidak tersedia";
+        _rw = "Email tidak tersedia";
+      });
+      print("DEBUG: User email is empty, cannot fetch kader profile.");
+      return;
+    }
 
-        setState(() {
-          _kaderProfileRawData = jsonEncode(data);
-          _namaPuskesmas = data['namaPuskesmas'] ?? 'Tidak Tersedia';
-          _posyandu = data['namaPosyandu'] ?? 'Tidak Tersedia';
-          _rt = data['rt'] ?? 'Tidak Tersedia';
-          _rw = data['rw'] ?? 'Tidak Tersedia';
-        });
-        print("Kader Profile Data: $data");
-      } else {
-        setState(() {
-          _kaderProfileRawData = "Email pengguna tidak tersedia.";
-          _namaPuskesmas = "Email tidak tersedia";
-          _posyandu = "Email tidak tersedia";
-          _rt = "Email tidak tersedia";
-          _rw = "Email tidak tersedia";
-        });
-        print("DEBUG: User email is empty, cannot fetch kader profile.");
-      }
+    // Set initial loading state
+    setState(() {
+      _kaderProfileRawData = "Memuat...";
+      _namaPuskesmas = "Memuat...";
+      _posyandu = "Memuat...";
+      _rt = "Memuat...";
+      _rw = "Memuat...";
+    });
+
+    try {
+      Map<String, dynamic> data = await _kaderServices.getKader(User.instance.email);
+
+      setState(() {
+        _kaderProfileRawData = jsonEncode(data);
+        _namaPuskesmas = data['namaPuskesmas'] ?? 'Tidak Tersedia';
+        _posyandu = data['namaPosyandu'] ?? 'Tidak Tersedia';
+        _rt = data['rt'] ?? 'Tidak Tersedia';
+        _rw = data['rw'] ?? 'Tidak Tersedia';
+      });
+      print("Kader Profile Data: $data");
     } catch (e) {
       setState(() {
         _kaderProfileRawData = "Gagal memuat profil: $e";
@@ -77,6 +71,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
         _rw = "Gagal memuat";
       });
       print('Error fetching kader profile: $e');
+      print(_kaderProfileRawData);
     }
   }
 
@@ -177,14 +172,16 @@ class _ProfilScreenState extends State<ProfilScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
+                    onPressed: () async { // Make it async to await the push
                       print("Informasi Dasar Page");
-                      Navigator.push(
+                      await Navigator.push( // Await the push so you can refresh
                         context,
                         MaterialPageRoute(
                           builder: (context) => const KaderInformasiScreen(),
                         ),
                       );
+                      // After returning from KaderInformasiScreen, refresh the profile data
+                      _fetchKaderProfile();
                     },
                     style: TextButton.styleFrom(
                       minimumSize: Size(width * 0.9, height * 0.06),
@@ -224,7 +221,13 @@ class _ProfilScreenState extends State<ProfilScreen> {
                   ),
                   TextButton(
                     onPressed: () {
-                      print("Informasi Dasar Page");
+                      print("Ubah password Page");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const KaderPasswordScreen(), // Replace with actual email change screen
+                        ),
+                      );
                     },
                     style: TextButton.styleFrom(
                       minimumSize: Size(width * 0.9, height * 0.06),
@@ -256,7 +259,8 @@ class _ProfilScreenState extends State<ProfilScreen> {
                   SizedBox(height: height * 0.01),
                   TextButton(
                     onPressed: () {
-                      print("Informasi Dasar Page");
+                      print("Ubah email Page");
+                      // Implement navigation to change email screen
                     },
                     style: TextButton.styleFrom(
                       minimumSize: Size(width * 0.9, height * 0.06),

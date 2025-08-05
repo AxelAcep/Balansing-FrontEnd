@@ -94,6 +94,36 @@ class _KaderInformasiScreenState extends State<KaderInformasiScreen> {
         _rwController.text = 'Gagal memuat';
       });
       print('Error fetching kader profile: $e');
+      print(_kaderProfileRawData); 
+    }
+  }
+
+  Future<void> _updateKaderProfile() async {
+    try {
+      Map<String, dynamic> data = {
+        'email': User.instance.email,
+        'namaPuskesmas': _puskesmasController.text,
+        'namaPosyandu': _posyanduController.text,
+        'provinsi': _provinsiController.text,
+        'kota': _kotaController.text,
+        'kecamatan': _kecamatanController.text,
+        'kelurahan': _kelurahanController.text,
+        'rt': _rtController.text.isNotEmpty ? (_rtController.text) : null, // Pastikan RT/RW adalah integer
+        'rw': _rwController.text.isNotEmpty ? (_rwController.text) : null, // Pastikan RT/RW adalah integer
+      };
+
+      Map<String, dynamic> response = await _kaderServices.updateKader(User.instance.email, data);
+      print("Update Response: $response");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profil kader berhasil diperbarui!')),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal memperbarui profil: $e')),
+      );
+      print('Error updating kader profile: $e');
     }
   }
 
@@ -125,6 +155,8 @@ class _KaderInformasiScreenState extends State<KaderInformasiScreen> {
     print("RW: ${_rwController.text}");
     print("--------------------------");
 
+     _updateKaderProfile(); // Panggil update profil setiap kali ada perubahan
+
     // Di sini Anda bisa menambahkan logika untuk menyimpan data ke database atau API
     // Misalnya:
     // SomeApiService().saveKaderInfo({
@@ -135,7 +167,7 @@ class _KaderInformasiScreenState extends State<KaderInformasiScreen> {
 
     // Tampilkan notifikasi atau navigasi setelah menyimpan
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Perubahan berhasil disimpan!')),
+      const SnackBar(content: Text('Perubahan Diproses!')),
     );
   }
 
@@ -178,7 +210,7 @@ class _KaderInformasiScreenState extends State<KaderInformasiScreen> {
                         // Back Button
                         TextButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.pop(context, true);
                           },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,

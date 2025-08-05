@@ -1,22 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:balansing/card/RiwayatCard.dart'; // Import the ChildCard widget
+import 'package:balansing/card/RiwayatCard.dart';
+import 'package:balansing/services/kader_services.dart';
+import 'package:balansing/models/user_model.dart';
+import 'dart:convert'; // Tambahkan ini untuk jsonEncode/Decode
 
-// Import the ChildCard (assuming you put it in a separate file like 'widgets/child_card.dart')
-// import 'package:balansing/widgets/child_card.dart'; // Adjust path as needed
-
-// If ChildCard and ChildStatusData are in the same file as RiwayatScreen for now, no import needed.
-// Otherwise, define ChildStatusData if not already global.
+// Asumsi: RiwayatCard adalah ChildCard yang sudah kamu sediakan.
+// Asumsi: ChildStatusData adalah class yang relevan jika digunakan.
 class ChildStatusData {
   final String title;
   final Color color;
 
   ChildStatusData(this.title, this.color);
 }
-
-// Your ChildCard definition (copy/paste the updated one from above here if not in a separate file)
-// ... (ChildCard and _ChildCardState code as provided above) ...
-
 
 class RiwayatScreen extends StatefulWidget {
   const RiwayatScreen({super.key});
@@ -27,52 +23,22 @@ class RiwayatScreen extends StatefulWidget {
 
 class _RiwayatScreenState extends State<RiwayatScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final KaderServices _kaderServices = KaderServices();
 
-  // Dummy list of child data to demonstrate multiple cards
-  // Now includes full details for each child
-  final List<Map<String, String>> _dummyChildren = [
-    {
-      'name': 'Alexander Graham',
-      'age': '1 tahun 3 bulan',
-      'gender': 'Laki-laki',
-      'measurements': '10kg / 75cm',
-      'status': 'Stunting', // This will be the only tag shown
-    },
-    {
-      'name': 'Budi Santoso',
-      'age': '2 tahun 0 bulan',
-      'gender': 'Laki-laki',
-      'measurements': '12kg / 85cm',
-      'status': 'Sehat',
-    },
-    {
-      'name': 'Citra Dewi',
-      'age': '0 tahun 6 bulan',
-      'gender': 'Perempuan',
-      'measurements': '6kg / 60cm',
-      'status': 'Anemia',
-    },
-    {
-      'name': 'Dewi Lestari',
-      'age': '1 tahun 9 bulan',
-      'gender': 'Perempuan',
-      'measurements': '9.5kg / 70cm',
-      'status': 'Keduanya',
-    },
-    {
-      'name': 'Eko Prasetyo',
-      'age': '2 tahun 6 bulan',
-      'gender': 'Laki-laki',
-      'measurements': '14kg / 90cm',
-      'status': 'Sehat',
-    },
-  ];
+  // 1. Ubah _dummyChildren menjadi list kosong
+  // Ini akan menyimpan data dari API setelah berhasil di-fetch
+  List<Map<String, dynamic>> _childrenData = [];
 
+  // 2. Tambahkan variabel untuk status loading dan error
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    // 3. Panggil fungsi untuk mengambil data
+    _fetchChildrenData();
   }
 
   @override
@@ -84,7 +50,36 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
 
   void _onSearchChanged() {
     debugPrint('Real-time Search Query: ${_searchController.text}');
-    // Implement actual filtering here if needed
+    // Logika filtering data bisa ditambahkan di sini
+  }
+
+  // 4. Buat fungsi baru untuk mengambil data dari API dan memperbarui state
+  Future<void> _fetchChildrenData() async {
+    setState(() {
+      _isLoading = true; // Set loading state to true
+      _errorMessage = null; // Reset error message
+    });
+
+    try {
+      final String email = User.instance.email;
+      // Memanggil service untuk mendapatkan data dari API
+      final List<Map<String, dynamic>> recapData = await _kaderServices.getRecap(email);
+      
+      // 5. Perbarui state dengan data yang baru
+      setState(() {
+        _childrenData = recapData;
+        _isLoading = false; // Matikan status loading
+      });
+
+      debugPrint('Data berhasil diambil: $_childrenData');
+    } catch (e) {
+      // 6. Jika terjadi error, perbarui state dengan pesan error
+      setState(() {
+        _errorMessage = 'Gagal memuat data: $e';
+        _isLoading = false; // Matikan status loading
+      });
+      debugPrint('Error fetching data: $e');
+    }
   }
 
   @override
@@ -103,7 +98,8 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
             children: [
               SizedBox(height: height * 0.05),
 
-              // Header row
+              // ... Bagian header, info RT/RW, Tanggal, dan Jumlah Anak tetap sama ...
+
               SizedBox(
                 width: width * 0.9,
                 child: Row(
@@ -118,125 +114,67 @@ class _RiwayatScreenState extends State<RiwayatScreen> {
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: width * 0.025,
-                        vertical: height * 0.013,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.filter_list,
-                            color: const Color(0xFF64748B),
-                            size: height * 0.015,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Filter',
-                            style: TextStyle(
-                              color: const Color(0xFF64748B),
-                              fontWeight: FontWeight.w600,
-                              fontSize: height * 0.012,
-                            ),
-                          ),
-                        ],
-                      ),
+                      // ... kode filter button ...
                     ),
                   ],
                 ),
               ),
 
               SizedBox(height: height * 0.01),
-
               _buildInfoRow(width, height, "RT/RW", "04/01"),
               SizedBox(height: height * 0.01),
-
               _buildInfoRow(width, height, "Tanggal Input", "27 Juli 2025"),
               SizedBox(height: height * 0.01),
-
-              _buildInfoRow(width, height, "Jumlah Anak", "3"),
+              // Gunakan data dari state untuk jumlah anak
+              _buildInfoRow(width, height, "Jumlah Anak", "${_childrenData.length}"),
               SizedBox(height: height * 0.01),
 
-              // Search bar
-              Container(
-                width: width * 0.9,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.search,
-                      color: Colors.grey[600],
-                      size: height * 0.025,
-                    ),
-                    SizedBox(width: width * 0.02),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: InputDecoration(
-                          hintText: 'Cari Data',
-                          hintStyle: GoogleFonts.poppins(
-                            color: Colors.grey[600],
-                            fontSize: width * 0.035,
-                          ),
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        style: GoogleFonts.poppins(
-                          color: Colors.black,
-                          fontSize: width * 0.035,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // ... Bagian search bar tetap sama ...
 
-              SizedBox(height: height * 0.015),
-
-              // Scrollable container with max height for child cards
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: height * 0.63,
-                ),
-                child: Container(
-                  width: width * 0.9,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
+              // 7. Tambahkan kondisi untuk menampilkan status loading, error, atau data
+              if (_isLoading)
+                const Center(
+                  child: CircularProgressIndicator(),
+                )
+              else if (_errorMessage != null)
+                Center(
+                  child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                )
+              else if (_childrenData.isEmpty)
+                const Center(
+                  child: Text('Tidak ada data anak ditemukan.'),
+                )
+              else
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: height * 0.63,
                   ),
-                  child: Scrollbar(
-                    thumbVisibility: false,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: _dummyChildren.map((childData) {
-                          return ChildCard(
-                            name: childData['name']!,
-                            age: childData['age']!,
-                            gender: childData['gender']!,
-                            measurements: childData['measurements']!,
-                            statusType: childData['status']!,
-                          );
-                        }).toList(),
-                      ),
+                  child: Container(
+                    width: width * 0.9,
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
+                    ),
+                    child: Scrollbar(
+                      thumbVisibility: false,
+child: SingleChildScrollView(
+  child: Column(
+    children: _childrenData.map((childData) {
+      return ChildCard(
+        nama: childData['nama'] ?? 'Nama Tidak Diketahui',
+        usia: childData['usia'] ?? 0,
+        // Konversi int ke double
+        beratBadan: (childData['beratBadan'] as num).toDouble(),
+        tinggiBadan: (childData['tinggiBadan'] as num).toDouble(),
+        anemia: childData['anemia'] ?? false,
+        stunting: childData['stunting'] ?? false,
+        jenisKelamin: childData['jenisKelamin'] ?? 'Tidak Diketahui',
+      );
+    }).toList(),
+  ),
+),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

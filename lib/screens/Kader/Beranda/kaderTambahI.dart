@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/screens/Kader/Beranda/kaderTambahII.dart';
+// Import model dan data manager yang baru kita buat
+import 'package:balansing/models/anakKader_model.dart';
 
 class KaderTambahI extends StatefulWidget {
   const KaderTambahI({super.key});
@@ -10,49 +12,103 @@ class KaderTambahI extends StatefulWidget {
 }
 
 class _KaderTambahIState extends State<KaderTambahI> {
-  // Corrected: Initialize TextEditingController properly
+  // Ambil instance data placeholder dari Data Manager
+  final AnakKader _anakKader = AnakKaderDataManager().getData();
+
   final TextEditingController _namaIbuController = TextEditingController();
   final TextEditingController _namaAnakController = TextEditingController();
   final TextEditingController _tahunController = TextEditingController();
   final TextEditingController _bulanController = TextEditingController();
-  final TextEditingController _bbController = TextEditingController(); // Controller for BB
-  final TextEditingController _tbController = TextEditingController(); // Controller for TB
+  final TextEditingController _bbController = TextEditingController();
+  final TextEditingController _tbController = TextEditingController();
 
+  // _selectedDate dan _selectedGender akan diinisialisasi dari _anakKader di initState
   DateTime? _selectedDate;
-  String? _selectedGender; // State variable for selected gender
+  String? _selectedGender;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi controller dan state dari data yang ada di _anakKader
+    _selectedDate = _anakKader.tanggalPemeriksaan;
+    _namaIbuController.text = _anakKader.namaIbu ?? '';
+    _namaAnakController.text = _anakKader.namaAnak ?? '';
+    _tahunController.text = _anakKader.umurTahun?.toString() ?? '';
+    _bulanController.text = _anakKader.umurBulan?.toString() ?? '';
+    _bbController.text = _anakKader.beratBadan?.toString() ?? '';
+    _tbController.text = _anakKader.tinggiBadan?.toString() ?? '';
+    _selectedGender = _anakKader.jenisKelamin;
+  }
+
+  // Fungsi untuk menyimpan data ke _anakKader
+  void _saveDataToModel() {
+    _anakKader.tanggalPemeriksaan = _selectedDate;
+    _anakKader.namaIbu = _namaIbuController.text;
+    _anakKader.namaAnak = _namaAnakController.text;
+    _anakKader.umurTahun = int.tryParse(_tahunController.text);
+    _anakKader.umurBulan = int.tryParse(_bulanController.text);
+    _anakKader.beratBadan = double.tryParse(_bbController.text);
+    _anakKader.tinggiBadan = double.tryParse(_tbController.text);
+    _anakKader.jenisKelamin = _selectedGender;
+
+    // Anda bisa menambahkan debugPrint untuk melihat data yang tersimpan
+    debugPrint('Data AnakKader yang disimpan:');
+    debugPrint('Tanggal: ${_anakKader.tanggalPemeriksaan}');
+    debugPrint('Nama Ibu: ${_anakKader.namaIbu}');
+    debugPrint('Nama Anak: ${_anakKader.namaAnak}');
+    debugPrint('Umur Tahun: ${_anakKader.umurTahun}');
+    debugPrint('Umur Bulan: ${_anakKader.umurBulan}');
+    debugPrint('BB: ${_anakKader.beratBadan}');
+    debugPrint('TB: ${_anakKader.tinggiBadan}');
+    debugPrint('Jenis Kelamin: ${_anakKader.jenisKelamin}');
+  }
+
+  void _resetDatatoModel() {
+    _selectedDate = null;
+    _namaIbuController.clear();
+    _namaAnakController.clear();
+    _tahunController.clear();
+    _bulanController.clear();
+    _bbController.clear();
+    _tbController.clear();
+    _selectedGender = null;
+
+    _anakKader.reset();
+  }
 
   @override
   void dispose() {
+    // Panggil _saveDataToModel di dispose() agar data tersimpan saat widget dilepas dari tree
+    _saveDataToModel();
+
     _namaIbuController.dispose();
     _namaAnakController.dispose();
     _tahunController.dispose();
     _bulanController.dispose();
-    _bbController.dispose(); // Dispose BB controller
-    _tbController.dispose(); // Dispose TB controller
+    _bbController.dispose();
+    _tbController.dispose();
     super.dispose();
   }
 
-  // Function to show the date picker
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(), // Use selected date or current date
-      firstDate: DateTime(2000), // Start date for the picker
-      lastDate: DateTime(2101), // End date for the picker
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF64748B), // Header background color
-              onPrimary: Colors.white, // Header text color
-              onSurface: Color(0xFF020617), // Body text color
+              primary: Color(0xFF64748B),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF020617),
             ),
             textButtonTheme: TextButtonThemeData(
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF64748B), // Button text color
+                foregroundColor: const Color(0xFF64748B),
               ),
             ),
-            // Style for the selected date text/hover (similar to "Tanggal" text)
             textTheme: TextTheme(
               titleLarge: GoogleFonts.poppins(
                 fontSize: MediaQuery.of(context).size.width * 0.035,
@@ -82,6 +138,16 @@ class _KaderTambahIState extends State<KaderTambahI> {
     }
   }
 
+  bool get ButtonActive =>
+      _namaIbuController.text.isNotEmpty &&
+      _namaAnakController.text.isNotEmpty &&
+      _tahunController.text.isNotEmpty &&
+      _bulanController.text.isNotEmpty &&
+      _bbController.text.isNotEmpty &&
+      _tbController.text.isNotEmpty &&
+      _selectedDate != null &&
+      _selectedGender != null;
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -90,9 +156,9 @@ class _KaderTambahIState extends State<KaderTambahI> {
       body: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 10.0),
-        child: Column( // Changed to Column to stack scrollable content and fixed buttons
+        child: Column(
           children: [
-            Expanded( // This makes the ListView take up remaining space and be scrollable
+            Expanded(
               child: ListView(
                 children: [
                   Container(
@@ -101,11 +167,52 @@ class _KaderTambahIState extends State<KaderTambahI> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Back Button
                         TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text(
+                                      'Apakah Anda yakin?',
+                                      style: TextStyle(color: Colors.red), // Judul merah
+                                    ),
+                                    content: const Text(
+                                      'Aksi Anda tidak akan disimpan. Tindakan ini tidak dapat dikembalikan lagi.',
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(); // Tutup dialog
+                                        },
+                                        child: Text(
+                                                  "Tidak",
+                                                  style: GoogleFonts.poppins(
+                                                    color: const Color(0xFF020617),
+                                                    fontSize: width * 0.035,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ), // "Kembali" biru,
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          // Panggil fungsi reset data
+                                          _resetDatatoModel();
+                                          // Tutup dialog
+                                          Navigator.of(context).pop();
+                                          // Kembali ke halaman sebelumnya
+                                          Navigator.pop(context);
+                                        },
+                                        child: Text(
+                                          'Ya, Kembali',
+                                          style: GoogleFonts.poppins(color: Colors.red, fontSize: width*0.035, fontWeight: FontWeight.w500 ), // "Ya" merah
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -144,7 +251,6 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             ],
                           ),
                         ),
-                        // Text Langkah 1 dari 2
                         Text(
                           "Langkah 1 dari 2",
                           style: GoogleFonts.poppins(
@@ -263,7 +369,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                           ),
                         ),
-                        SizedBox(height: height*0.02,),
+                        SizedBox(height: height * 0.02,),
                         Text(
                           "Nama Anak",
                           style: GoogleFonts.poppins(
@@ -296,7 +402,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                           ),
                         ),
-                        SizedBox(height: height*0.02,),
+                        SizedBox(height: height * 0.02,),
                         Text(
                           "Umur",
                           style: GoogleFonts.poppins(
@@ -383,7 +489,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             ),
                           ],
                         ),
-                        SizedBox(height: height*0.01,),
+                        SizedBox(height: height * 0.01,),
                         Text(
                           "BB/TB",
                           style: GoogleFonts.poppins(
@@ -572,7 +678,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                 ],
               ),
             ),
-            SizedBox(height: height*0.02,), // Space above the buttons
+            SizedBox(height: height * 0.02,), // Space above the buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -581,7 +687,11 @@ class _KaderTambahIState extends State<KaderTambahI> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      print('Simpan & keluar pressed');
+                      _saveDataToModel(); // Simpan data sebelum keluar
+                      Navigator.pop(context); // Kembali ke halaman sebelumnya
+                      // Anda mungkin ingin membersihkan data setelah disimpan ke database permanen
+                      // AnakKaderDataManager().clearData();
+                      print('Data disimpan dan keluar');
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF4F9EC),
@@ -604,16 +714,18 @@ class _KaderTambahIState extends State<KaderTambahI> {
                 SizedBox(width: width * 0.04),
                 // Button 2: Selanjutnya
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      print('Selanjutnya pressed');
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => KaderTambahII()),
-                          );
-                    },
+                  child:ElevatedButton(
+                    onPressed: ButtonActive ? () {
+                      _saveDataToModel();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => KaderTambahII()),
+                      );
+                      print('Lanjut ke halaman berikutnya dengan data tersimpan.');
+                    } : null, // Tombol tidak bisa ditekan saat `onPressed` adalah `null`
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9FC86A),
+                      // Properti `backgroundColor` juga bisa diatur secara dinamis
+                      backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
@@ -628,11 +740,11 @@ class _KaderTambahIState extends State<KaderTambahI> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
+                  )
                 ),
               ],
             ),
-            SizedBox(height: height*0.01,), // Space above the buttons
+            SizedBox(height: height * 0.01,),
           ],
         ),
       ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+// import 'package:intl/intl.dart'; // Tidak diperlukan lagi untuk tanggal pemeriksaan di sini
+
+import 'package:balansing/models/anakKader_model.dart';
+import 'package:balansing/models/user_model.dart';
+import 'package:balansing/services/kader_services.dart';
 
 class KaderTambahII extends StatefulWidget {
   const KaderTambahII({super.key});
@@ -9,96 +14,115 @@ class KaderTambahII extends StatefulWidget {
 }
 
 class _KaderTambahIIState extends State<KaderTambahII> {
-  // Corrected: Initialize TextEditingController properly
-  final TextEditingController _namaIbuController = TextEditingController();
-  final TextEditingController _namaAnakController = TextEditingController();
-  final TextEditingController _tahunController = TextEditingController();
-  final TextEditingController _bulanController = TextEditingController();
-  final TextEditingController _bbController = TextEditingController(); // Controller for BB
-  final TextEditingController _tbController = TextEditingController(); // Controller for TB
+  // Hanya variabel state untuk Radio Button (Boolean)
+  bool? _konjungtivitaNormal; // true = Merah Segar, false = Pucat
+  bool? _kukuBersih;          // true = Ya, false = Tidak
+  bool? _tampakLemas;         // true = Ya, false = Tidak
+  bool? _tampakPucat;         // true = Ya, false = Tidak
+  bool? _riwayatAnemia;       // true = Ya, false = Tidak
 
-  DateTime? _selectedDate;
-  //String? _selectedGender; // State variable for selected gender
+  final _formKey = GlobalKey<FormState>();
 
-  // State variables for new selections
-  String? _selectedKonjungtiva;
-  String? _selectedKuku;
-  String? _selectedLemas;
-  String? _selectedPucat;
-  String? _selectedRiwayatAnemia;
-
+  // Ambil instance dari AnakKaderDataManager
+  final AnakKaderDataManager _anakKaderDataManager = AnakKaderDataManager();
 
   @override
-  void dispose() {
-    _namaIbuController.dispose();
-    _namaAnakController.dispose();
-    _tahunController.dispose();
-    _bulanController.dispose();
-    _bbController.dispose(); // Dispose BB controller
-    _tbController.dispose(); // Dispose TB controller
-    super.dispose();
+  void initState() {
+    super.initState();
+    _loadInitialGejalaData(); // Panggil fungsi untuk memuat data gejala awal
   }
 
-  // Function to show the date picker
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate ?? DateTime.now(), // Use selected date or current date
-      firstDate: DateTime(2000), // Start date for the picker
-      lastDate: DateTime(2101), // End date for the picker
-      builder: (BuildContext context, Widget? child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF64748B), // Header background color
-              onPrimary: Colors.white, // Header text color
-              onSurface: Color(0xFF020617), // Body text color
-            ),
-            textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF64748B), // Button text color
-              ),
-            ),
-            // Style for the selected date text/hover (similar to "Tanggal" text)
-            textTheme: TextTheme(
-              titleLarge: GoogleFonts.poppins(
-                fontSize: MediaQuery.of(context).size.width * 0.035,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF64748B),
-              ),
-              bodyLarge: GoogleFonts.poppins(
-                fontSize: MediaQuery.of(context).size.width * 0.035,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF64748B),
-              ),
-              bodyMedium: GoogleFonts.poppins(
-                fontSize: MediaQuery.of(context).size.width * 0.035,
-                fontWeight: FontWeight.w400,
-                color: const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          child: child!,
+  // Fungsi baru untuk memuat data gejala dari DataManager
+  void _loadInitialGejalaData() {
+    // Ambil data dari data manager (currentAnakKader dari singleton)
+    final AnakKader anakKaderData = _anakKaderDataManager.getData();
+
+    // Mengisi variabel state untuk Radio Button (Boolean)
+    // Jika nilai dari model adalah null, maka variabel state akan tetap null,
+    // yang berarti tidak ada radio button yang terpilih secara default.
+    _konjungtivitaNormal = anakKaderData.konjungtivitaNormal;
+    _kukuBersih = anakKaderData.kukuBersih;
+    _tampakLemas = anakKaderData.tampakLemas;
+    _tampakPucat = anakKaderData.tampakPucat;
+    _riwayatAnemia = anakKaderData.riwayatAnemia;
+  }
+
+  Future<void> _SubmitAnak() async{
+    final AnakKader anakKaderData = _anakKaderDataManager.getData();
+    // Kumpulkan data gejala dari form
+    AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
+    updatedAnakKader.email = User.instance.email; // Pastikan email diisi
+
+    try {
+      // Panggil service untuk mengirim data ke backend
+      final response = await KaderServices().postAnakKader(updatedAnakKader.toJson());
+      print('Data anak berhasil disimpan: ${response}');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Data berhasil diunggah!')),
         );
-      },
-    );
-    if (picked != null && picked != _selectedDate) {
-      setState(() {
-        _selectedDate = picked;
-      });
+
+      anakKaderData.reset();
+      Navigator.pop(context); // Kembali ke halaman sebelumnya atau halaman yang sesuai
+      Navigator.pop(context); // Menutup halaman sebelumnya
+
+      // Tampilkan pesan sukses atau navigasi ke halaman lain jika diperlukan
+    } catch (e) {
+      print('Gagal menyimpan data anak: $e');
+      // Tampilkan pesan error kepada pengguna
     }
   }
 
-  // Helper widget for radio button rows
+  // Fungsi untuk mengumpulkan data gejala dari form ke objek AnakKader
+  // Hanya memperbarui properti gejala, sisanya tetap dari DataManager
+  AnakKader _collectGejalaDataForAnakKader() {
+    // Ambil data AnakKader yang sudah ada dari DataManager
+    // Ini penting agar data non-gejala tidak hilang
+    AnakKader currentAnakKader = _anakKaderDataManager.getData();
+
+    // Buat objek AnakKader baru dengan mengupdate hanya properti gejala
+    return AnakKader(
+      tanggalPemeriksaan: currentAnakKader.tanggalPemeriksaan,
+      namaIbu: currentAnakKader.namaIbu,
+      namaAnak: currentAnakKader.namaAnak,
+      umurTahun: currentAnakKader.umurTahun,
+      umurBulan: currentAnakKader.umurBulan,
+      beratBadan: currentAnakKader.beratBadan,
+      tinggiBadan: currentAnakKader.tinggiBadan,
+      jenisKelamin: currentAnakKader.jenisKelamin,
+      konjungtivitaNormal: _konjungtivitaNormal,
+      kukuBersih: _kukuBersih,
+      tampakLemas: _tampakLemas,
+      tampakPucat: _tampakPucat,
+      riwayatAnemia: _riwayatAnemia,
+    );
+  }
+
+  bool get ButtonActive {
+    // Mengembalikan true jika semua gejala sudah diisi
+    return _konjungtivitaNormal != null &&
+           _kukuBersih != null &&
+           _tampakLemas != null &&
+           _tampakPucat != null &&
+           _riwayatAnemia != null;
+  }
+
+  // Metode dispose tidak lagi diperlukan untuk TextEditingController
+  // karena sudah dihapus.
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  // Modifikasi _buildRadioRow untuk menerima bool? sebagai groupValue
   Widget _buildRadioRow({
     required String title,
     required String question,
-    required String value1,
-    required String label1,
-    required String value2,
-    required String label2,
-    required String? groupValue,
-    required ValueChanged<String?> onChanged,
+    required bool valueForYes, // Nilai boolean untuk opsi 'Ya' (atau 'Merah Segar')
+    required String labelForYes,
+    required bool valueForNo,  // Nilai boolean untuk opsi 'Tidak' (atau 'Pucat')
+    required String labelForNo,
+    required bool? groupValue, // Sekarang menerima bool?
+    required ValueChanged<bool?> onChanged, // Mengubah nilai boolean
     required double width,
     required double height,
   }) {
@@ -128,22 +152,22 @@ class _KaderTambahIIState extends State<KaderTambahII> {
           children: [
             Expanded(
               child: InkWell(
-                onTap: () => onChanged(value1),
+                onTap: () => onChanged(valueForYes), // Mengirim true
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: groupValue == value1 ? const Color(0xFFF4F9EC) : Colors.white,
+                    color: groupValue == valueForYes ? const Color(0xFFF4F9EC) : Colors.white,
                     border: Border.all(
-                      color: groupValue == value1 ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
+                      color: groupValue == valueForYes ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
                       width: 1.0,
                     ),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Center(
                     child: Text(
-                      label1,
+                      labelForYes,
                       style: GoogleFonts.poppins(
-                        color: groupValue == value1 ? const Color(0xFF9FC86A) : Colors.black,
+                        color: groupValue == valueForYes ? const Color(0xFF9FC86A) : Colors.black,
                         fontSize: width * 0.035,
                         fontWeight: FontWeight.w500,
                       ),
@@ -155,22 +179,22 @@ class _KaderTambahIIState extends State<KaderTambahII> {
             SizedBox(width: width * 0.04),
             Expanded(
               child: InkWell(
-                onTap: () => onChanged(value2),
+                onTap: () => onChanged(valueForNo), // Mengirim false
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   decoration: BoxDecoration(
-                    color: groupValue == value2 ? const Color(0xFFF4F9EC) : Colors.white,
+                    color: groupValue == valueForNo ? const Color(0xFFF4F9EC) : Colors.white,
                     border: Border.all(
-                      color: groupValue == value2 ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
+                      color: groupValue == valueForNo ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
                       width: 1.0,
                     ),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Center(
                     child: Text(
-                      label2,
+                      labelForNo,
                       style: GoogleFonts.poppins(
-                        color: groupValue == value2 ? const Color(0xFF9FC86A) : Colors.black,
+                        color: groupValue == valueForNo ? const Color(0xFF9FC86A) : Colors.black,
                         fontSize: width * 0.035,
                         fontWeight: FontWeight.w500,
                       ),
@@ -196,212 +220,214 @@ class _KaderTambahIIState extends State<KaderTambahII> {
         child: Column(
           children: [
             Expanded(
-              child: ListView(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Back Button
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: TextButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            alignment: Alignment.centerLeft,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: height * 0.035,
-                                height: height * 0.035,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                    width: 1.0,
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              alignment: Alignment.centerLeft,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: height * 0.035,
+                                  height: height * 0.035,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white,
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                      width: 1.0,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_back,
+                                    color: Color(0xFF020617),
+                                    size: 20.0,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.arrow_back,
-                                  color: Color(0xFF020617),
-                                  size: 20.0,
+                                const SizedBox(width: 8.0),
+                                Text(
+                                  "Kembali",
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFF020617),
+                                    fontSize: width * 0.04,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8.0),
-                              Text(
-                                "Kembali",
-                                style: GoogleFonts.poppins(
-                                  color: const Color(0xFF020617),
-                                  fontSize: width * 0.04,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        // Text Langkah 1 dari 2
-                        Text(
-                          "Langkah 2 dari 2",
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFFA1A1AA),
-                            fontSize: width * 0.03,
-                            fontWeight: FontWeight.w400,
+                          Text(
+                            "Langkah 2 dari 2",
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFFA1A1AA),
+                              fontSize: width * 0.03,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: height * 0.02),
-                  Text(
-                    "Tambah Data",
-                    style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    "Data anak ke-1",
-                    style: GoogleFonts.poppins(
-                        fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
-                  ),
-                  SizedBox(height: height * 0.02),
-                  Text("Gejala", style: GoogleFonts.poppins(
-                      fontSize: width * 0.04,
-                      fontWeight: FontWeight.w600
-                  ),),
-                  SizedBox(height: height * 0.02,),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-                      borderRadius: BorderRadius.circular(10),
+                    SizedBox(height: height * 0.02),
+                    Text(
+                      "Tambah Data",
+                      style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Konjungtiva Section
-                        _buildRadioRow(
-                          title: "Konjungtiva",
-                          question: "Kecil dan Abu-abu. Saat kelopak mata bawah anak ditarik perlahan, bagaimana warnanya?",
-                          value1: "Merah Segar",
-                          label1: "Merah Segar",
-                          value2: "Pucat",
-                          label2: "Pucat",
-                          groupValue: _selectedKonjungtiva,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedKonjungtiva = value;
-                            });
-                          },
-                          width: width,
-                          height: height,
-                        ),
-                        SizedBox(height: height * 0.02),
-
-                        // Kuku Section
-                        _buildRadioRow(
-                          title: "Kuku",
-                          question: "Apakah ada masalah yang terlihat? Sangat pucat, rapuh/mudah patah.",
-                          value1: "Ya",
-                          label1: "Ya, ada",
-                          value2: "Tidak",
-                          label2: "Tidak",
-                          groupValue: _selectedKuku,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedKuku = value;
-                            });
-                          },
-                          width: width,
-                          height: height,
-                        ),
-                        SizedBox(height: height * 0.02),
-
-                        // Lemas Section
-                        _buildRadioRow(
-                          title: "Lemas",
-                          question: "Anak terlihat Lemas?",
-                          value1: "Ya",
-                          label1: "Ya",
-                          value2: "Tidak",
-                          label2: "Tidak",
-                          groupValue: _selectedLemas,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedLemas = value;
-                            });
-                          },
-                          width: width,
-                          height: height,
-                        ),
-                        SizedBox(height: height * 0.02),
-
-                        // Pucat Section
-                        _buildRadioRow(
-                          title: "Pucat",
-                          question: "Anak terlihat pucat?",
-                          value1: "Ya",
-                          label1: "Ya",
-                          value2: "Tidak",
-                          label2: "Tidak",
-                          groupValue: _selectedPucat,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedPucat = value;
-                            });
-                          },
-                          width: width,
-                          height: height,
-                        ),
-                        SizedBox(height: height * 0.02),
-
-                        // Riwayat Anemia Section
-                        _buildRadioRow(
-                          title: "Riwayat Anemia",
-                          question: "Apakah anak memiliki riwayat anemia?",
-                          value1: "Ya",
-                          label1: "Ya",
-                          value2: "Tidak",
-                          label2: "Tidak",
-                          groupValue: _selectedRiwayatAnemia,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedRiwayatAnemia = value;
-                            });
-                          },
-                          width: width,
-                          height: height,
-                        ),
-                        SizedBox(height: height * 0.01), // Add a small space at the end
-                      ],
+                    Text(
+                      "Data anak ke-1",
+                      style: GoogleFonts.poppins(
+                          fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
                     ),
-                  ),
-                ],
+                    SizedBox(height: height * 0.02),
+
+                    Text(
+                      "Gejala",
+                      style: GoogleFonts.poppins(fontSize: width * 0.04, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: height * 0.02),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Konjungtivita Normal Section
+                          _buildRadioRow(
+                            title: "Konjungtiva",
+                            question: "Kecil dan Abu-abu. Saat kelopak mata bawah anak ditarik perlahan, apakah warnanya merah segar?",
+                            valueForYes: true,
+                            labelForYes: "Merah Segar",
+                            valueForNo: false,
+                            labelForNo: "Pucat",
+                            groupValue: _konjungtivitaNormal,
+                            onChanged: (value) {
+                              setState(() {
+                                _konjungtivitaNormal = value;
+                              });
+                            },
+                            width: width,
+                            height: height,
+                          ),
+                          SizedBox(height: height * 0.02),
+
+                          // Kuku Bersih Section
+                          _buildRadioRow(
+                            title: "Kuku",
+                            question: "Apakah kuku anak bersih dan tidak rapuh?",
+                            valueForYes: true,
+                            labelForYes: "Ya, bersih",
+                            valueForNo: false,
+                            labelForNo: "Rapuh/Pucat",
+                            groupValue: _kukuBersih,
+                            onChanged: (value) {
+                              setState(() {
+                                _kukuBersih = value;
+                              });
+                            },
+                            width: width,
+                            height: height,
+                          ),
+                          SizedBox(height: height * 0.02),
+
+                          // Tampak Lemas Section
+                          _buildRadioRow(
+                            title: "Lemas",
+                            question: "Anak terlihat Lemas?",
+                            valueForYes: true,
+                            labelForYes: "Ya",
+                            valueForNo: false,
+                            labelForNo: "Tidak",
+                            groupValue: _tampakLemas,
+                            onChanged: (value) {
+                              setState(() {
+                                _tampakLemas = value;
+                              });
+                            },
+                            width: width,
+                            height: height,
+                          ),
+                          SizedBox(height: height * 0.02),
+
+                          // Tampak Pucat Section
+                          _buildRadioRow(
+                            title: "Pucat",
+                            question: "Anak terlihat pucat?",
+                            valueForYes: true,
+                            labelForYes: "Ya",
+                            valueForNo: false,
+                            labelForNo: "Tidak",
+                            groupValue: _tampakPucat,
+                            onChanged: (value) {
+                              setState(() {
+                                _tampakPucat = value;
+                              });
+                            },
+                            width: width,
+                            height: height,
+                          ),
+                          SizedBox(height: height * 0.02),
+
+                          // Riwayat Anemia Section
+                          _buildRadioRow(
+                            title: "Riwayat Anemia",
+                            question: "Apakah anak memiliki riwayat anemia?",
+                            valueForYes: true,
+                            labelForYes: "Ya",
+                            valueForNo: false,
+                            labelForNo: "Tidak",
+                            groupValue: _riwayatAnemia,
+                            onChanged: (value) {
+                              setState(() {
+                                _riwayatAnemia = value;
+                              });
+                            },
+                            width: width,
+                            height: height,
+                          ),
+                          SizedBox(height: height * 0.01),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(height: height*0.02,), // Space above the buttons
+            SizedBox(height: height * 0.02),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Button 1: Simpan & keluar
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      print('Simpan & keluar pressed');
-                      // You can access selected values here:
-                      print('Konjungtiva: $_selectedKonjungtiva');
-                      print('Kuku: $_selectedKuku');
-                      print('Lemas: $_selectedLemas');
-                      print('Pucat: $_selectedPucat');
-                      print('Riwayat Anemia: $_selectedRiwayatAnemia');
+                      // Kumpulkan data gejala dari form
+                      AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
+                      // Simpan data ke DataManager (ini akan memperbarui objek currentAnakKader)
+                      _anakKaderDataManager.currentAnakKader = updatedAnakKader;
+                      print('Data gejala disimpan ke DataManager:');
+                      print(updatedAnakKader.toJson());
+
+                      Navigator.pop(context); // Kembali ke halaman sebelumnya
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFF4F9EC),
@@ -422,20 +448,20 @@ class _KaderTambahIIState extends State<KaderTambahII> {
                   ),
                 ),
                 SizedBox(width: width * 0.04),
-                // Button 2: Selanjutnya
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      print('Selanjutnya pressed');
-                      // You can access selected values here:
-                      print('Konjungtiva: $_selectedKonjungtiva');
-                      print('Kuku: $_selectedKuku');
-                      print('Lemas: $_selectedLemas');
-                      print('Pucat: $_selectedPucat');
-                      print('Riwayat Anemia: $_selectedRiwayatAnemia');
-                    },
+                    onPressed: ButtonActive ? () {
+                      AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
+                      updatedAnakKader.email = User.instance.email; // Pastikan email diisi
+                      // Simpan data ke DataManager (ini akan memperbarui objek currentAnakKader)
+                      _anakKaderDataManager.currentAnakKader = updatedAnakKader;
+                      print('Data gejala saat ini (Tombol Selanjutnya) dan disimpan ke DataManager:');
+                      print(updatedAnakKader.toJson());
+                      _SubmitAnak(); // Panggil fungsi untuk mengirim data ke backend
+                      // Lanjutkan ke halaman berikutnya
+                    } : null, // Tombol tidak bisa ditekan saat ButtonActive adalah false
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9FC86A),
+                      backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       ),
@@ -443,7 +469,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
                       elevation: 0,
                     ),
                     child: Text(
-                      "Selanjutnya",
+                      "Unggah",
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: width * 0.035,
@@ -454,7 +480,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
                 ),
               ],
             ),
-            SizedBox(height: height*0.01,), // Space above the buttons
+            SizedBox(height: height * 0.01),
           ],
         ),
       ),
