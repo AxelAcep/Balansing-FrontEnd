@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:balansing/screens/Kader/Beranda/kaderTambahII.dart';
+import 'package:balansing/screens/Kader/Recap/EditRecapII.dart';
 // Import model dan data manager yang baru kita buat
 import 'package:balansing/models/anakKader_model.dart';
+import 'package:balansing/services/kader_services.dart';
+import "package:balansing/providers/KaderProvider.dart";
+import 'package:provider/provider.dart';
 
-class KaderTambahI extends StatefulWidget {
-  const KaderTambahI({super.key});
+
+class EditRecapI extends StatefulWidget {
+    final String? id;
+  
+  const EditRecapI({super.key, required this.id});
 
   @override
-  State<KaderTambahI> createState() => _KaderTambahIState();
+  State<EditRecapI> createState() => _EditRecapStateI();
 }
 
-class _KaderTambahIState extends State<KaderTambahI> {
+class _EditRecapStateI extends State<EditRecapI> {
   // Ambil instance data placeholder dari Data Manager
   final AnakKader _anakKader = AnakKaderDataManager().getData();
 
@@ -25,22 +31,14 @@ class _KaderTambahIState extends State<KaderTambahI> {
   // _selectedDate dan _selectedGender akan diinisialisasi dari _anakKader di initState
   DateTime? _selectedDate;
   String? _selectedGender;
+  
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dan state dari data yang ada di _anakKader
-    _selectedDate = _anakKader.tanggalPemeriksaan ?? DateTime.now();
-    _namaIbuController.text = _anakKader.namaIbu ?? '';
-    _namaAnakController.text = _anakKader.namaAnak ?? '';
-    _tahunController.text = _anakKader.umurTahun?.toString() ?? '';
-    _bulanController.text = _anakKader.umurBulan?.toString() ?? '';
-    _bbController.text = _anakKader.beratBadan?.toString() ?? '';
-    _tbController.text = _anakKader.tinggiBadan?.toString() ?? '';
-    _selectedGender = _anakKader.jenisKelamin;
+    _fetchData(); 
   }
 
-  // Fungsi untuk menyimpan data ke _anakKader
   void _saveDataToModel() {
     _anakKader.tanggalPemeriksaan = _selectedDate;
     _anakKader.namaIbu = _namaIbuController.text;
@@ -50,6 +48,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
     _anakKader.beratBadan = double.tryParse(_bbController.text);
     _anakKader.tinggiBadan = double.tryParse(_tbController.text);
     _anakKader.jenisKelamin = _selectedGender;
+    _anakKader.id = widget.id;
 
     // Anda bisa menambahkan debugPrint untuk melihat data yang tersimpan
     debugPrint('Data AnakKader yang disimpan:');
@@ -61,10 +60,15 @@ class _KaderTambahIState extends State<KaderTambahI> {
     debugPrint('BB: ${_anakKader.beratBadan}');
     debugPrint('TB: ${_anakKader.tinggiBadan}');
     debugPrint('Jenis Kelamin: ${_anakKader.jenisKelamin}');
+    debugPrint('id: ${widget.id}');
+    debugPrint('Konjungtivitas: ${_anakKader.konjungtivitaNormal}');
+    debugPrint('Kuku: ${_anakKader.kukuBersih}');
+    debugPrint('Lemas: ${_anakKader.tampakLemas}');
+    debugPrint('Pucat: ${_anakKader.tampakPucat}');
   }
 
   void _resetDatatoModel() {
-    _selectedDate = DateTime.now();
+    _selectedDate = null;
     _namaIbuController.clear();
     _namaAnakController.clear();
     _tahunController.clear();
@@ -75,6 +79,60 @@ class _KaderTambahIState extends State<KaderTambahI> {
 
     _anakKader.reset();
   }
+
+ Future<void> _DeleteAnak(String id) async{
+    try {
+      final response = await KaderServices().deleteAnakKader(id);
+      print('Data anak berhasil disimpan: ${response}');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Berhasil Dihapus!')),
+        );
+      Navigator.pop(context); // Kembali ke halaman sebelumnya atau halaman yang sesuai
+      Navigator.pop(context); // Kembali ke halaman sebelumnya atau halaman yang sesuai
+      Provider.of<RiwayatProvider>(context, listen: false).fetchChildrenData();
+
+      // Tampilkan pesan sukses atau navigasi ke halaman lain jika diperlukan
+    } catch (e) {
+      print('Gagal menyimpan data anak: $e');
+      // Tampilkan pesan error kepada pengguna
+    }
+  }
+
+Future<void> _fetchData() async {
+  try {
+    final List<Map<String, dynamic>> data = await KaderServices().getDetailAnakKader(widget.id!);
+
+
+    if (data.isNotEmpty) {
+      final anakData = data.first;
+      print(anakData);
+
+      setState(() {
+        _selectedDate = DateTime.tryParse(anakData['tanggalPemeriksaan'] ?? '') ?? DateTime.now();
+        _namaIbuController.text = anakData['namaIbu'] ?? '';
+        _namaAnakController.text = anakData['nama'] ?? '';
+        _tahunController.text = anakData['umurTahun']?.toString() ?? '';
+        _bulanController.text = anakData['umurBulan']?.toString() ?? '';
+        _bbController.text = anakData['beratBadan']?.toString() ?? '';
+        _tbController.text = anakData['tinggiBadan']?.toString() ?? '';
+        _selectedGender = anakData['jenisKelamin'] ?? '';
+
+        _anakKader.konjungtivitaNormal = anakData['konjungtivitaNormal'] ?? null;
+        _anakKader.kukuBersih = anakData['kukuBersih'] ?? null;  
+        _anakKader.tampakLemas = anakData['tampakLemas'] ?? null;
+        _anakKader.tampakPucat = anakData['tampakPucat'] ?? null;
+        _anakKader.riwayatAnemia = anakData['riwayatAnemia'] ?? null;
+      });
+    } else {
+      print('Tidak ada data anak ditemukan untuk ID ini.');
+      // Jika ingin menampilkan ke pengguna, gunakan dialog/snackbar di sini
+    }
+  } catch (e) {
+    print('Error fetching data: $e');
+    // Jika ingin menampilkan ke pengguna, gunakan dialog/snackbar di sini juga
+  }
+}
+
 
   @override
   void dispose() {
@@ -169,49 +227,8 @@ class _KaderTambahIState extends State<KaderTambahI> {
                       children: [
                         TextButton(
                             onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text(
-                                      'Apakah Anda yakin?',
-                                      style: TextStyle(color: Colors.red), // Judul merah
-                                    ),
-                                    content: const Text(
-                                      'Aksi Anda tidak akan disimpan. Tindakan ini tidak dapat dikembalikan lagi.',
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // Tutup dialog
-                                        },
-                                        child: Text(
-                                                  "Tidak",
-                                                  style: GoogleFonts.poppins(
-                                                    color: const Color(0xFF020617),
-                                                    fontSize: width * 0.035,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ), // "Kembali" biru,
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          // Panggil fungsi reset data
-                                          _resetDatatoModel();
-                                          // Tutup dialog
-                                          Navigator.of(context).pop();
-                                          // Kembali ke halaman sebelumnya
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text(
-                                          'Ya, Kembali',
-                                          style: GoogleFonts.poppins(color: Colors.red, fontSize: width*0.035, fontWeight: FontWeight.w500 ), // "Ya" merah
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
+                              _resetDatatoModel();
+                              Navigator.pop(context);
                             },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -264,11 +281,11 @@ class _KaderTambahIState extends State<KaderTambahI> {
                   ),
                   SizedBox(height: height * 0.02),
                   Text(
-                    "Tambah Data",
+                    "Edit Data",
                     style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
                   ),
                   Text(
-                    "Data anak ke-1",
+                    "Data anak",
                     style: GoogleFonts.poppins(
                         fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
                   ),
@@ -683,43 +700,76 @@ class _KaderTambahIState extends State<KaderTambahI> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Button 1: Simpan & keluar
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _saveDataToModel(); // Simpan data sebelum keluar
-                      Navigator.pop(context); // Kembali ke halaman sebelumnya
-                      // Anda mungkin ingin membersihkan data setelah disimpan ke database permanen
-                      // AnakKaderDataManager().clearData();
-                      print('Data disimpan dan keluar');
-                    },
+                  child:ElevatedButton(
+                    onPressed: ButtonActive ? () {
+                      showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text(
+                                      'Apakah Anda yakin?',
+                                      style: TextStyle(color: Colors.red), // Judul merah
+                                    ),
+                                    content: const Text(
+                                      'Aksi ini akan menghapus data Anak. Tindakan ini tidak dapat dikembalikan lagi.',
+                                    ),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(); // Tutup dialog
+                                        },
+                                        child: Text(
+                                                  "Tidak",
+                                                  style: GoogleFonts.poppins(
+                                                    color: const Color(0xFF020617),
+                                                    fontSize: width * 0.035,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ), // "Kembali" biru,
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          String? id = widget.id;
+                                          _DeleteAnak(id!);
+                                        },
+                                        child: Text(
+                                          'Ya, Kembali',
+                                          style: GoogleFonts.poppins(color: Colors.red, fontSize: width*0.035, fontWeight: FontWeight.w500 ), // "Ya" merah
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                    } : null, // Tombol tidak bisa ditekan saat `onPressed` adalah `null`
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF4F9EC),
+                      // Properti `backgroundColor` juga bisa diatur secara dinamis
+                      backgroundColor: ButtonActive ? const Color.fromARGB(255, 244, 2, 2) : Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(color: Color(0xFF9FC86A)),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      elevation: 0,
                     ),
                     child: Text(
-                      "Simpan & keluar",
+                      "Hapus Data",
                       style: GoogleFonts.poppins(
-                        color: const Color(0xFF9FC86A),
+                        color: Colors.white,
                         fontSize: width * 0.035,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
+                  )
                 ),
-                SizedBox(width: width * 0.04),
-                // Button 2: Selanjutnya
+                SizedBox(width: width * 0.02,), // Space between buttons
                 Expanded(
                   child:ElevatedButton(
                     onPressed: ButtonActive ? () {
                       _saveDataToModel();
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => KaderTambahII()),
+                        MaterialPageRoute(builder: (context) => EditRecapII()),
                       );
                       print('Lanjut ke halaman berikutnya dengan data tersimpan.');
                     } : null, // Tombol tidak bisa ditekan saat `onPressed` adalah `null`

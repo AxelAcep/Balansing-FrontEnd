@@ -33,6 +33,57 @@ class KaderServices {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getDetailAnakKader(String id) async {
+  final url = Uri.parse('$_baseUrl/detailRecap/$id');
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${User.instance.token}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      return [responseData]; // ✅ Bungkus ke dalam List
+    } else {
+      final Map<String, dynamic> errorBody = jsonDecode(response.body);
+      throw Exception('Gagal mendapatkan detail anak kader. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+    }
+  } catch (e) {
+    print('Terjadi kesalahan saat mendapatkan detail anak kader: $e');
+    throw Exception('Terjadi kesalahan jaringan atau server: $e');
+  }
+}
+
+Future<List<Map<String, dynamic>>> deleteAnakKader(String id) async {
+  final url = Uri.parse('$_baseUrl/anak/$id');
+  try {
+    final response = await http.delete(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${User.instance.token}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      return [responseData]; // ✅ Bungkus ke dalam List
+    } else {
+      final Map<String, dynamic> errorBody = jsonDecode(response.body);
+      throw Exception('Gagal mendapatkan detail anak kader. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+    }
+  } catch (e) {
+    print('Terjadi kesalahan saat mendapatkan detail anak kader: $e');
+    throw Exception('Terjadi kesalahan jaringan atau server: $e');
+  }
+}
+
+
+
+
   Future<List<Map<String, dynamic>>> getRecap(String email) async {
     final url = Uri.parse('$_baseUrl/recap/$email');
     try {
@@ -43,6 +94,40 @@ class KaderServices {
           'Authorization': 'Bearer ${User.instance.token}',
         },
       );
+
+      if (response.statusCode == 200) {
+        // Ubah tipe data dari `Map` menjadi `List<dynamic>`
+        final List<dynamic> responseData = jsonDecode(response.body);
+        // Konversi setiap item dalam list menjadi Map<String, dynamic>
+        return responseData.cast<Map<String, dynamic>>();
+      } else {
+        final Map<String, dynamic> errorBody = jsonDecode(response.body);
+        throw Exception('Gagal mendapatkan recap kader. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+      }
+    } catch (e) {
+      print('Terjadi kesalahan saat mendapatkan recap kader: $e');
+      throw Exception('Terjadi kesalahan jaringan atau server: $e');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getRecapFilter(String email, int month, int year, int count) async {
+    final url = Uri.parse('$_baseUrl/filterAnak');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${User.instance.token}'
+        },
+        body: jsonEncode({ // <--- BODY diletakkan di sini, di luar headers
+        'email': email,
+        'month': month,
+        'year': year,
+        'count': count,
+      }),
+      );
+      
+      print(response); 
 
       if (response.statusCode == 200) {
         // Ubah tipe data dari `Map` menjadi `List<dynamic>`
@@ -91,6 +176,30 @@ class KaderServices {
     final url = Uri.parse('$_baseUrl/anak');
     try {
       final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${User.instance.token}',
+        },
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        final Map<String, dynamic> errorBody = jsonDecode(response.body);
+        throw Exception('Gagal mengupload anak kader. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+      }}catch (e) {
+      print('Terjadi kesalahan saat memperbarui profil kader: $e');
+      throw Exception('Terjadi kesalahan jaringan atau server: $e');
+    }
+  }
+  
+
+  Future<Map<String, dynamic>> editAnakKader(Map<String, dynamic> data) async {
+    final url = Uri.parse('$_baseUrl/anak');
+    try {
+      final response = await http.put(
         url,
         headers: {
           'Content-Type': 'application/json',

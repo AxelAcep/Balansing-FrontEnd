@@ -7,16 +7,15 @@ import 'package:balansing/models/user_model.dart';
 import 'package:balansing/services/kader_services.dart';
 import 'package:balansing/providers/KaderProvider.dart';
 import 'package:provider/provider.dart';
-import 'package:balansing/models/filter_model.dart';
 
-class KaderTambahII extends StatefulWidget {
-  const KaderTambahII({super.key});
+class EditRecapII extends StatefulWidget {
+  const EditRecapII({super.key});
 
   @override
-  State<KaderTambahII> createState() => _KaderTambahIIState();
+  State<EditRecapII> createState() => _EditRecapIIState();
 }
 
-class _KaderTambahIIState extends State<KaderTambahII> {
+class _EditRecapIIState extends State<EditRecapII> {
   // Hanya variabel state untuk Radio Button (Boolean)
   bool? _konjungtivitaNormal; // true = Merah Segar, false = Pucat
   bool? _kukuBersih;          // true = Ya, false = Tidak
@@ -25,8 +24,6 @@ class _KaderTambahIIState extends State<KaderTambahII> {
   bool? _riwayatAnemia;       // true = Ya, false = Tidak
 
   final _formKey = GlobalKey<FormState>();
-  final filterModel = FilterModel();
-
 
   // Ambil instance dari AnakKaderDataManager
   final AnakKaderDataManager _anakKaderDataManager = AnakKaderDataManager();
@@ -59,25 +56,15 @@ class _KaderTambahIIState extends State<KaderTambahII> {
     updatedAnakKader.email = User.instance.email; // Pastikan email diisi
 
     try {
-      // Panggil service untuk mengirim data ke backend
-      final response = await KaderServices().postAnakKader(updatedAnakKader.toJson());
+      print(updatedAnakKader.toJson());
+      final response = await KaderServices().editAnakKader(updatedAnakKader.toJson());
       print('Data anak berhasil disimpan: ${response}');
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Data berhasil diunggah!')),
+          SnackBar(content: Text('Data berhasil diubah!')),
         );
 
       anakKaderData.reset();
-
-      if(!filterModel.filter){
-        Provider.of<RiwayatProvider>(context, listen: false).fetchChildrenData();
-      }else{
-        Provider.of<RiwayatProvider>(context, listen: false).filterChildrenByMonth(
-          filterModel.month,
-          filterModel.year,
-          filterModel.count
-        );
-      }
-
+      Provider.of<RiwayatProvider>(context, listen: false).fetchChildrenData();
       Navigator.pop(context); // Kembali ke halaman sebelumnya atau halaman yang sesuai
       Navigator.pop(context); // Menutup halaman sebelumnya
 
@@ -110,6 +97,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
       tampakLemas: _tampakLemas,
       tampakPucat: _tampakPucat,
       riwayatAnemia: _riwayatAnemia,
+      id: currentAnakKader.id, // Pastikan ID tetap sama
     );
   }
 
@@ -435,37 +423,6 @@ class _KaderTambahIIState extends State<KaderTambahII> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Kumpulkan data gejala dari form
-                      AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
-                      // Simpan data ke DataManager (ini akan memperbarui objek currentAnakKader)
-                      _anakKaderDataManager.currentAnakKader = updatedAnakKader;
-                      print('Data gejala disimpan ke DataManager:');
-                      print(updatedAnakKader.toJson());
-
-                      Navigator.pop(context); // Kembali ke halaman sebelumnya
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFF4F9EC),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(color: Color(0xFF9FC86A)),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
-                    child: Text(
-                      "Simpan & keluar",
-                      style: GoogleFonts.poppins(
-                        color: const Color(0xFF9FC86A),
-                        fontSize: width * 0.035,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: width * 0.04),
-                Expanded(
-                  child: ElevatedButton(
                     onPressed: ButtonActive ? () {
                       AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
                       updatedAnakKader.email = User.instance.email; // Pastikan email diisi
@@ -485,7 +442,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
                       elevation: 0,
                     ),
                     child: Text(
-                      "Unggah",
+                      "Update Data",
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: width * 0.035,
