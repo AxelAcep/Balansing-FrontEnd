@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/services/kader_services.dart';
 import 'package:balansing/models/user_model.dart';
+import 'package:balansing/providers/KaderProvider.dart';
+import 'package:provider/provider.dart';
 
 class KaderInformasiScreen extends StatefulWidget {
   const KaderInformasiScreen({super.key});
@@ -113,6 +115,7 @@ class _KaderInformasiScreenState extends State<KaderInformasiScreen> {
       };
 
       Map<String, dynamic> response = await _kaderServices.updateKader(User.instance.email, data);
+      Provider.of<DashboardProvider>(context, listen: false).fetchKaderProfile();
       print("Update Response: $response");
 
       ScaffoldMessenger.of(context).showSnackBar(

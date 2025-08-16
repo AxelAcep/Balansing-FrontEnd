@@ -29,7 +29,7 @@ void main() async {
     // Gunakan MultiProvider untuk mendaftarkan semua provider
     MultiProvider(
       providers: [
-        // Daftarkan provider untuk user model Anda
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider.value(value: app_user.User.instance),
         ChangeNotifierProvider(
           create: (_) => FilterModel(), // Daftarkan FilterModel

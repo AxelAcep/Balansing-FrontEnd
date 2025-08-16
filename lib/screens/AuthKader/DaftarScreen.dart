@@ -147,7 +147,7 @@ class _DaftarScreenState extends State<Daftarscreen> {
 
           // Konten utama yang bisa di-scroll
           Positioned(
-            top: height * 0.13, // Sesuaikan posisi awal konten utama di bawah header baru
+            top: height * 0.12, // Sesuaikan posisi awal konten utama di bawah header baru
             left: 0,
             right: 0,
             bottom: 0,

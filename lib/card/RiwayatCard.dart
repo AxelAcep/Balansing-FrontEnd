@@ -20,7 +20,7 @@ class ChildCard extends StatefulWidget {
   final double beratBadan;
   final double tinggiBadan;
   final bool anemia;
-  final bool stunting;
+  final String stunting;
   final String jenisKelamin;
   final String? id; // Tambahkan id jika diperlukan
 
@@ -53,11 +53,11 @@ class _ChildCardState extends State<ChildCard> {
 
   // Fungsi untuk menentukan status berdasarkan anemia dan stunting
   String _getStatusType() {
-    if (widget.anemia && widget.stunting) {
+    if (widget.anemia && (widget.stunting == "SangatPendek" || widget.stunting == "Pendek")) {
       return 'Keduanya';
     } else if (widget.anemia) {
       return 'Anemia';
-    } else if (widget.stunting) {
+    } else if (widget.stunting == "SangatPendek" || widget.stunting == "Pendek") {
       return 'Stunting';
     } else {
       return 'Sehat';

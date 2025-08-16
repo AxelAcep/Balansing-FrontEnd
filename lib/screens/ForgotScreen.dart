@@ -83,13 +83,15 @@ class _ForgotscreenState extends State<Forgotscreen> {
         buttonEnabled ? const Color(0xFF9FC86A) : const Color(0xFF878b94);
 
     return Scaffold(
-      body: Center(
+      body: Container(
         child: Container(
+          width: double.infinity,
           color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
+              SizedBox(height: height*0.21,),
               Container(
                 child: Image.asset(
                   "assets/images/Balansing-Logo.png",

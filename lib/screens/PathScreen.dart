@@ -32,7 +32,7 @@ class _PathScreen extends State<PathScreen> {
       backgroundColor: Colors.white, 
         body: Center(child: (Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: height*0.08,),
+            SizedBox(height: height*0.0,),
             Container(
                 width: width * 1, 
                 height: height * 0.35, 
@@ -227,9 +227,9 @@ class _PathScreen extends State<PathScreen> {
                 ],
               ),
             ),
+          Expanded(child:
            Container(
               width: width * 0.9,
-              height: height * 0.1,
               color: Colors.transparent,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -272,10 +272,10 @@ class _PathScreen extends State<PathScreen> {
                     ),
                   ),
                   // --- SizedBox yang sudah ada sebelumnya ---
-                  SizedBox(height: height * 0.01),
+                  SizedBox(height: height * 0.02),
                 ],
               ),
-            ),
+            ),)
             ]
           )
         )

@@ -7,6 +7,7 @@ import 'package:balansing/models/user_model.dart';
 import 'package:balansing/services/kader_services.dart';
 import 'package:balansing/providers/KaderProvider.dart';
 import 'package:provider/provider.dart';
+import 'package:balansing/models/filter_model.dart';
 
 class EditRecapII extends StatefulWidget {
   const EditRecapII({super.key});
@@ -24,6 +25,7 @@ class _EditRecapIIState extends State<EditRecapII> {
   bool? _riwayatAnemia;       // true = Ya, false = Tidak
 
   final _formKey = GlobalKey<FormState>();
+  late FilterModel filterModel;
 
   // Ambil instance dari AnakKaderDataManager
   final AnakKaderDataManager _anakKaderDataManager = AnakKaderDataManager();
@@ -31,6 +33,8 @@ class _EditRecapIIState extends State<EditRecapII> {
   @override
   void initState() {
     super.initState();
+    // Inisialisasi filterModel di sini karena context sudah tersedia
+    filterModel = Provider.of<FilterModel>(context, listen: false);
     _loadInitialGejalaData(); // Panggil fungsi untuk memuat data gejala awal
   }
 
@@ -64,7 +68,17 @@ class _EditRecapIIState extends State<EditRecapII> {
         );
 
       anakKaderData.reset();
-      Provider.of<RiwayatProvider>(context, listen: false).fetchChildrenData();
+      final riwayatProvider = Provider.of<RiwayatProvider>(context, listen: false);
+
+      if(!filterModel.filter){
+        riwayatProvider.fetchChildrenData();
+      } else{
+         riwayatProvider.filterChildrenByMonth(
+          filterModel.month,
+          filterModel.year,
+          filterModel.count,
+        );
+      }
       Navigator.pop(context); // Kembali ke halaman sebelumnya atau halaman yang sesuai
       Navigator.pop(context); // Menutup halaman sebelumnya
 
@@ -129,7 +143,8 @@ class _EditRecapIIState extends State<EditRecapII> {
     required ValueChanged<bool?> onChanged, // Mengubah nilai boolean
     required double width,
     required double height,
-  }) {
+  })
+  {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

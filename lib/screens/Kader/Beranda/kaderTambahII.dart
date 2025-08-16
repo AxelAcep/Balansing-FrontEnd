@@ -25,8 +25,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
   bool? _riwayatAnemia;       // true = Ya, false = Tidak
 
   final _formKey = GlobalKey<FormState>();
-  final filterModel = FilterModel();
-
+  late FilterModel filterModel;
 
   // Ambil instance dari AnakKaderDataManager
   final AnakKaderDataManager _anakKaderDataManager = AnakKaderDataManager();
@@ -34,6 +33,7 @@ class _KaderTambahIIState extends State<KaderTambahII> {
   @override
   void initState() {
     super.initState();
+    filterModel = Provider.of<FilterModel>(context, listen: false);
     _loadInitialGejalaData(); // Panggil fungsi untuk memuat data gejala awal
   }
 

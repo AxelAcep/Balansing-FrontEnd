@@ -225,7 +225,7 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
             ),
           ),
           Positioned(
-            top: height * 0.13,
+            top: height * 0.12,
             left: 0,
             right: 0,
             bottom: 0,
@@ -507,7 +507,7 @@ class _DaftarScreenStateII extends State<DaftarscreenII> {
                             ),
                           ),
                         ),
-                        SizedBox(height: height * 0.045),
+                        SizedBox(height: height * 0.03),
                         SizedBox(
                           width: double.infinity,
                           height: height * 0.04,
