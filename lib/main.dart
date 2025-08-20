@@ -12,6 +12,7 @@ import 'package:balansing/services/auth_services.dart';
 
 // Import your new RiwayatProvider
 import 'package:balansing/providers/KaderProvider.dart';
+import 'package:balansing/providers/IbuProvider.dart';
 
 // Other screens
 import 'package:balansing/screens/onboarding_screen.dart';
@@ -37,6 +38,7 @@ void main() async {
         
         // Daftarkan provider baru untuk riwayat
         ChangeNotifierProvider(create: (_) => RiwayatProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
       ],
       child: const MyApp(),
     ),

@@ -272,7 +272,7 @@ class _PathScreen extends State<PathScreen> {
                     ),
                   ),
                   // --- SizedBox yang sudah ada sebelumnya ---
-                  SizedBox(height: height * 0.02),
+                  SizedBox(height: height * 0.07),
                 ],
               ),
             ),)

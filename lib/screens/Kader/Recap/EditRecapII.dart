@@ -234,6 +234,7 @@ class _EditRecapIIState extends State<EditRecapII> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Container(
+        color: Colors.white,
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 10.0),
         child: Column(
@@ -468,7 +469,7 @@ class _EditRecapIIState extends State<EditRecapII> {
                 ),
               ],
             ),
-            SizedBox(height: height * 0.01),
+            SizedBox(height: height * 0.06),
           ],
         ),
       ),

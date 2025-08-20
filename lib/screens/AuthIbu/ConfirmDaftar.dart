@@ -1,3 +1,4 @@
+import 'package:balansing/screens/AuthIbu/LoginScreenIbu.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -6,14 +7,14 @@ import 'package:google_fonts/google_fonts.dart';
 // Jika digunakan untuk navigasi kembali
 // import 'package:balansing/screens/AuthKader/DaftarScreenII.dart'; // Dihapus karena tidak digunakan di sini
 
-class ConfirmEmailPassword extends StatefulWidget {
-  const ConfirmEmailPassword({super.key});
+class Confirmdaftar extends StatefulWidget {
+  const Confirmdaftar({super.key});
 
   @override
-  State<ConfirmEmailPassword> createState() => _ConfirmEmailPasswordState(); // Mengubah nama state class agar sesuai konvensi
+  State<Confirmdaftar> createState() => _ConfirmdaftarState(); // Mengubah nama state class agar sesuai konvensi
 }
 
-class _ConfirmEmailPasswordState extends State<ConfirmEmailPassword> {
+class _ConfirmdaftarState extends State<Confirmdaftar> {
   bool _isVisible = false; // State untuk mengontrol visibilitas (opacity) animasi
 
   @override
@@ -36,9 +37,11 @@ class _ConfirmEmailPasswordState extends State<ConfirmEmailPassword> {
   // Fungsi yang akan dijalankan setelah animasi selesai
   void _onAnimationComplete() {
     print("Animasi selesai!");
-    Navigator.pop(context);
-    Navigator.pop(context);
-    }
+     Navigator.pushAndRemoveUntil(
+  context,
+  MaterialPageRoute(builder: (context) => LoginScreenIbu()),
+  (route) => route.isFirst
+);}
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +77,7 @@ class _ConfirmEmailPasswordState extends State<ConfirmEmailPassword> {
                 ),
               ),
               Text(
-                "Reset password berhasil! Silahkan cek kembali Email Anda.",
+                "Pendaftaran berhasil. Misi Anda dimulai!",
                 style: GoogleFonts.poppins(
                   fontSize: height * 0.015, // Ukuran font responsif
                   fontWeight: FontWeight.w400,

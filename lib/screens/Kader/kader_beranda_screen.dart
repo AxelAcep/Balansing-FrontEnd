@@ -119,6 +119,18 @@ class _BerandaScreenState extends State<BerandaScreen> {
           
           final double totalChildren = pieChartData.fold(0, (sum, item) => sum + item.value);
 
+          final month = filterModel.month;
+          final count = filterModel.count;
+          final year = filterModel.year;
+
+          late String dateData;
+
+          if(month + count > 12){
+            dateData = "${month}/${year} - ${month+count-12}/${year + 1}";
+          } else{
+            dateData = "${month}-${month+count} / ${year}";
+          }
+
           double findHighestValue(List<AgeGroupData> data) {
             if (data.isEmpty) {
               return 0.0; // Kembalikan double 0.0 jika list kosong
@@ -147,7 +159,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: height * 0.05),
+                SizedBox(height: height * 0.04),
                 Container(
                   width: width * 0.9,
                   decoration: const BoxDecoration(
@@ -482,7 +494,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            "Tanggal",
+                            "Bulan",
                             style: GoogleFonts.poppins(
                               fontSize: width * 0.035,
                               fontWeight: FontWeight.w400,
@@ -490,7 +502,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                             ),
                           ),
                           Text(
-                            "Januari - Juli 2025",
+                            "${dateData}",
                             style: GoogleFonts.poppins(
                               fontSize: width * 0.035,
                               fontWeight: FontWeight.w600,
@@ -504,7 +516,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                         width: width * 0.85,
                         padding: const EdgeInsets.all(16.0),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: const Color.fromARGB(255, 255, 255, 255),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: const Color(0xFFE2E8F0),
@@ -998,7 +1010,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                               ),
                             ),
                             Text(
-                              "Juni 2025",
+                              "${dateData}",
                               style: GoogleFonts.poppins(
                                 fontSize: width * 0.035,
                                 fontWeight: FontWeight.w400,
@@ -1157,7 +1169,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                               ),
                             ),
                             Text(
-                              "Juni 2025",
+                              "${dateData}",
                               style: GoogleFonts.poppins(
                                 fontSize: width * 0.035,
                                 fontWeight: FontWeight.w400,
@@ -1291,7 +1303,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                               ),
                             ),
                             Text(
-                              "Juni 2025",
+                              "${dateData}",
                               style: GoogleFonts.poppins(
                                 fontSize: width * 0.035,
                                 fontWeight: FontWeight.w400,
@@ -1495,7 +1507,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                                   ),
                                 ),
                                 Text(
-                                  "Juni 2025",
+                                  "${dateData}",
                                   style: GoogleFonts.poppins(
                                     fontSize: width * 0.035,
                                     fontWeight: FontWeight.w400,

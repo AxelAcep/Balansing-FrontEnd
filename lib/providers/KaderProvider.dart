@@ -27,7 +27,9 @@ class RiwayatProvider with ChangeNotifier {
       _originalChildrenData = recapData; // Simpan data asli untuk pencarian
       _isLoading = false;
     } catch (e) {
-      _errorMessage = 'Gagal memuat data: $e';
+      //_errorMessage = 'Gagal memuat data: $e';
+      _childrenData = []; // Set to empty list on error
+      _originalChildrenData = []; // Set original to empty list as well
       _isLoading = false;
     }
 
@@ -46,7 +48,9 @@ class RiwayatProvider with ChangeNotifier {
       _originalChildrenData = filteredData; // Simpan data asli untuk pencarian
       _isLoading = false;
     } catch (e) {
-      _errorMessage = 'Gagal memuat data: $e';
+       //_errorMessage = 'Gagal memuat data: $e';
+      _childrenData = []; // Set to empty list on error
+      _originalChildrenData = []; // Set original to empty list as well
       _isLoading = false;
     }
 
@@ -189,7 +193,8 @@ class DashboardProvider with ChangeNotifier {
       _processRecapData(recapData);
       _isLoading = false;
     } catch (e) {
-      _errorMessage = 'Gagal memuat data dashboard: $e';
+      //_errorMessage = 'Gagal memuat data dashboard: $e';
+      _processRecapData([]); // Process an empty list on error
       _isLoading = false;
     }
     notifyListeners();
@@ -211,7 +216,8 @@ class DashboardProvider with ChangeNotifier {
       _processRecapData(filteredData);
       _isLoading = false;
     } catch (e) {
-      _errorMessage = 'Gagal memuat data dashboard yang difilter: $e';
+       //_errorMessage = 'Gagal memuat data dashboard yang difilter: $e';
+      _processRecapData([]); // Process an empty list on error
       _isLoading = false;
     }
     notifyListeners();

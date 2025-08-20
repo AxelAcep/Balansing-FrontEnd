@@ -22,12 +22,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             MaterialPageRoute(builder: (context) => const PathScreen()),
           );
         },
-        child: Center(
-          child: Image.asset(
+        child: Container(
+          child: Column( mainAxisAlignment: MainAxisAlignment.start, children: [ 
+           SizedBox(height: height*0.26,),
+           Image.asset(
             'assets/images/Onboard-Logo.png',
             height: height * 0.3,
             fit: BoxFit.contain,
           ),
+          ],) 
         ),
       ),
     );

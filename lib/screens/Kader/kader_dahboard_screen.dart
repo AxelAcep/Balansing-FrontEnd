@@ -41,7 +41,7 @@ class _KaderDashboardScreenState extends State<KaderDashboardScreen> {
         index: _selectedIndex,
         children: _pages,
       ),
-      bottomNavigationBar: SizedBox( height: height*0.1,   child: BottomNavigationBar(
+      bottomNavigationBar: SizedBox( height: height*0.14,   child: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.history, size: _selectedIndex == 0 ? height*0.037 : height*0.03), // Icon untuk Riwayat

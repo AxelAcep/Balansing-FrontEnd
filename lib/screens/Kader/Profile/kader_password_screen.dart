@@ -88,6 +88,7 @@ class _KaderPasswordScreenState extends State<KaderPasswordScreen> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Container(
+        color: Colors.white,
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 10.0),
         child: Column(
@@ -330,7 +331,7 @@ class _KaderPasswordScreenState extends State<KaderPasswordScreen> {
               ),
               child: const Text("Simpan Perubahan"),
             ),
-            SizedBox(height: height * 0.02), // Add some spacing at the bottom
+            SizedBox(height: height * 0.06), // Add some spacing at the bottom
           ],
         ),
       ),
