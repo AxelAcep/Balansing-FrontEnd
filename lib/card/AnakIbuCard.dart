@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:balansing/screens/Kader/Recap/EditRecapI.dart';
+import 'package:balansing/screens/Ibu/Profile/ibu_edit_anak_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:balansing/providers/KaderProvider.dart'; // Import RiwayatProvider
+import 'package:balansing/providers/IbuProvider.dart'; // Import RiwayatProvider
 import 'package:balansing/models/filter_model.dart'; // Import FilterModel
+import 'package:balansing/models/user_model.dart';
 
 // Helper for status data (can be defined globally or in a utilities file)
 class ChildStatusData {
@@ -87,22 +88,13 @@ class _ChildCardState extends State<ChildCard> {
     return GestureDetector(
       onTap: () async {
         print(this.widget.id);
-        Navigator.push(
+        await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EditRecapI(id: widget.id),
+            builder: (context) => IbuEditAnakScreen(id: widget.id),
           ),
         );
-
-        if(!filterModel.filter){
-          Provider.of<RiwayatProvider>(context, listen: false).fetchChildrenData();
-        } else{
-          Provider.of<RiwayatProvider>(context, listen: false).filterChildrenByMonth(
-            filterModel.month,
-            filterModel.year,
-            filterModel.count
-          );
-        }
+        Provider.of<ProfileProvider>(context, listen: false).fetchDaftarAnak(User.instance.email);
       },
       child: Container(
               width: width * 0.9,

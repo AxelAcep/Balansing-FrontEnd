@@ -8,8 +8,8 @@ import 'package:balansing/models/ibu_model.dart';
 /// Kelas [AuthService] ini menyediakan fungsi-fungsi untuk berinteraksi
 /// dengan API autentikasi dan mengecek status pengguna.
 class AuthService {
-  //final String _baseUrl = 'http://10.0.2.2:5500/api/user'; 
-  final String _baseUrl = 'http://localhost:5500/api/user'; 
+  final String _baseUrl = 'http://10.0.2.2:5500/api/user'; 
+  //final String _baseUrl = 'http://localhost:5500/api/user'; 
 
 
 Future<String> resetPassword(String email) async { // Nama fungsi lebih baik diawali huruf kecil
