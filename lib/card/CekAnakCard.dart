@@ -6,6 +6,7 @@ class ProfileCard extends StatelessWidget {
   final String age;
   final String gender;
   final bool isSelected;
+  final bool checkable;
 
   const ProfileCard({
     Key? key,
@@ -14,6 +15,7 @@ class ProfileCard extends StatelessWidget {
     required this.age,
     required this.gender,
     this.isSelected = false,
+    this.checkable = true,
   }) : super(key: key);
 
   @override
@@ -30,11 +32,16 @@ class ProfileCard extends StatelessWidget {
         ? "assets/images/MaleIcon.png"
         : "assets/images/FemaleIcon.png";
 
+    // Menentukan warna background berdasarkan status 'checkable'
+    final Color cardColor = checkable
+        ? (isSelected ? const Color(0xFFE7F2D5) : Colors.white)
+        : Colors.grey.shade200;
+
     return Container(
       width: screenWidth * 0.9,
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFFE7F2D5) : Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: Colors.grey.shade300,

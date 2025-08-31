@@ -312,7 +312,7 @@ Future<void> _DeleteAnak(String id) async{
                   ),
                   SizedBox(height: height * 0.02),
                   Text(
-                    "Tambah Data",
+                    "Edit Data",
                     style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
                   ),
                   Text(

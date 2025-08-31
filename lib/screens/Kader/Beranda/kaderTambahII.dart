@@ -332,9 +332,9 @@ class _KaderTambahIIState extends State<KaderTambahII> {
                           _buildRadioRow(
                             title: "Konjungtiva",
                             question: "Kecil dan Abu-abu. Saat kelopak mata bawah anak ditarik perlahan, apakah warnanya merah segar?",
-                            valueForYes: true,
+                            valueForYes: false,
                             labelForYes: "Merah Segar",
-                            valueForNo: false,
+                            valueForNo: true,
                             labelForNo: "Pucat",
                             groupValue: _konjungtivitaNormal,
                             onChanged: (value) {
@@ -351,9 +351,9 @@ class _KaderTambahIIState extends State<KaderTambahII> {
                           _buildRadioRow(
                             title: "Kuku",
                             question: "Apakah kuku anak bersih dan tidak rapuh?",
-                            valueForYes: true,
+                            valueForYes: false,
                             labelForYes: "Ya, bersih",
-                            valueForNo: false,
+                            valueForNo: true,
                             labelForNo: "Rapuh/Pucat",
                             groupValue: _kukuBersih,
                             onChanged: (value) {

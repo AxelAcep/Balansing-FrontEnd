@@ -1,15 +1,14 @@
+import 'package:balansing/screens/Ibu/Cek/ibu_cek_I_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // Tambahkan dependensi intl di pubspec.yaml
+import 'package:intl/intl.dart';
 
 // Pastikan file-file ini ada di direktori yang sama
-import 'package:balansing/card/CekAnakCard.dart'; 
+import 'package:balansing/card/CekAnakCard.dart';
 import 'package:balansing/providers/IbuProvider.dart';
 import 'package:balansing/models/user_model.dart';
-
-
-// ====================================================================
+import 'package:balansing/screens/Ibu/Cek/ibu_riwayat_screen.dart';
 
 class IbuCekScreen extends StatefulWidget {
   const IbuCekScreen({super.key});
@@ -21,7 +20,8 @@ class IbuCekScreen extends StatefulWidget {
 class _IbuCekScreenState extends State<IbuCekScreen> {
   // Variabel state untuk melacak indeks card yang sedang terpilih
   int _selectedIndex = -1; // -1 berarti tidak ada yang terpilih
-  bool ButtonActive = false;
+  bool cekDate = false;
+  bool quizDone = false;
 
   @override
   void initState() {
@@ -49,6 +49,14 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
     }
   }
 
+  // Fungsi untuk mendapatkan ID anak yang dipilih
+  String? getSelectedAnakId(ProfileProvider provider) {
+    if (_selectedIndex != -1 && _selectedIndex < provider.daftarAnak.length) {
+      return provider.daftarAnak[_selectedIndex]['id'];
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -65,6 +73,53 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: height * 0.08),
+              // Peringatan akan ditampilkan jika belum ada anak yang dipilih
+              cekDate
+                  ? Container(
+                      width: double.infinity,
+                      height: height * 0.08,
+                      color: const Color(0xFFFEF9C3),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info, size: width * 0.05, color: const Color(0xFFEAB308)),
+                              SizedBox(width: width * 0.02),
+                              Text(
+                                "Peringatan",
+                                style: GoogleFonts.poppins(
+                                  fontSize: width * 0.04,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFFEAB308),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              SizedBox(width: width * 0.07), // Untuk perataan
+                              Text(
+                                "Pemeriksaan selanjutnya: 4 Juli 2025",
+                                style: GoogleFonts.poppins(
+                                  fontSize: width * 0.03,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFFEAB308),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  : SizedBox(height: height * 0.0),
+              
+              cekDate
+                  ? SizedBox(height: height * 0.02)
+                  : SizedBox(height: height * 0.0),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -80,6 +135,10 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                   ElevatedButton.icon(
                     onPressed: () {
                       print("Tombol Riwayat ditekan!");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const IbuRiwayatScreen()),
+                      );
                     },
                     icon: const Icon(Icons.history),
                     label: Text(
@@ -127,7 +186,6 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                   ),
                   child: Consumer<ProfileProvider>(
                     builder: (context, profileProvider, child) {
-                      // Tampilkan indikator loading atau pesan error
                       if (profileProvider.isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
@@ -138,7 +196,6 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                         return const Center(child: Text("Tidak ada data anak ditemukan."));
                       }
 
-                      // Membangun daftar card secara dinamis
                       return SingleChildScrollView(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -151,18 +208,15 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                                 child: GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      // Ubah _selectedIndex menjadi indeks yang baru
                                       _selectedIndex = index;
                                     });
                                   },
                                   child: ProfileCard(
                                     name: anak['nama'],
-                                    // Mengubah format tanggal
                                     birthDate: DateFormat('d MMMM yyyy', 'id').format(DateTime.parse(anak['usia'])),
-                                    // Menghitung umur
                                     age: _calculateAge(DateTime.parse(anak['usia'])),
                                     gender: anak['jenisKelamin'],
-                                    // Meneruskan status selected
+                                    checkable: anak['cekMingguan'],
                                     isSelected: _selectedIndex == index,
                                   ),
                                 ),
@@ -175,41 +229,168 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                   ),
                 ),
               ),
-            
+              
               SizedBox(height: height * 0.02),
 
-              Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child:ElevatedButton(
-                    onPressed: ButtonActive ? () {
-                      print("Tombol Selanjutnya ditekan!");
+              quizDone
+                  ?Container(
+                    width: double.infinity,
+                    height: height * 0.3,
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E8F0),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Column( mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          "assets/images/FoodIcon.png",
+                          height: height * 0.07,
+                        ),
+                        SizedBox(height: height * 0.01),
+                        Text(
+                          "Gizi & Kebersihan si kecil",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: width * 0.04,
+                            fontWeight: FontWeight.w600,
+                            color: const Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                        SizedBox(height: height * 0.01),
+                        Text(
+                          "Jawab kuis singkat ini untuk dapatkan tips lengkap seputar menu dan keluarga sehat.",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: width * 0.03,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                        SizedBox(height: height * 0.01),
+                        SizedBox(
+                          width: double.infinity, // Ini akan membuat widget memenuhi lebar parent
+                          height: MediaQuery.of(context).size.height * 0.04, // Mengatur tinggi sesuai permintaan Anda
+                          child: ElevatedButton(
+                            onPressed: () {
+                              print("Page Quiz");
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF9FC86A),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              "Mulai Quiz!",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: MediaQuery.of(context).size.width * 0.035,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
 
-                    } : null, // Tombol tidak bisa ditekan saat `onPressed` adalah `null`
-                    style: ElevatedButton.styleFrom(
-                      // Properti `backgroundColor` juga bisa diatur secara dinamis
-                      backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      elevation: 0,
+                        SizedBox(height: height * 0.005),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text("Sedang sibuk? ",
+                                style: GoogleFonts.poppins(
+                                  fontSize: width * 0.03,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF64748B),
+                                )),
+                            GestureDetector(
+                              onTap: () {
+                                print("Lewati Quiz");
+                                setState(() {
+                                  quizDone = false;
+                                });
+                              },
+                              child: Text("Ingatkan Kembali",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: width * 0.03,
+                                    decoration: TextDecoration.underline,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF9FC86A),
+                                  )),)
+                          ],
+                        )
+                      
+                      ],
                     ),
-                    child: Text(
-                      "Selanjutnya",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: width * 0.035,
-                        fontWeight: FontWeight.w500,
+                  ):SizedBox(height: height * 0.0),
+
+              quizDone? SizedBox(height: height * 0.02) : SizedBox(height: height * 0.0),
+              
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, child) {
+                  final bool isButtonActive = _selectedIndex != -1 && !cekDate;
+                  final String? selectedAnakId = getSelectedAnakId(profileProvider);
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: isButtonActive
+                              ? () async {
+                                  print("Tombol Selanjutnya ditekan!");
+                                  if (selectedAnakId != null) {
+                                    print("ID anak yang dipilih: $selectedAnakId");
+                                    await Navigator.push( // Await the push so you can refresh
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => IbuCekIScreen(id: selectedAnakId),
+                                      ),
+                                    );
+                                  }
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            "Selanjutnya",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: width * 0.035,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ),
+                    ],
+                  );
+                },
+              ),
+              SizedBox(height: height * 0.005),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_month, size: width * 0.04, color: Colors.grey),
+                  SizedBox(width: width * 0.02),
+                  Text(
+                    "Pengecekan sebelumnya: 4 Juni 2025",
+                    style: GoogleFonts.poppins(
+                      fontSize: width * 0.03,
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF64748B),
                     ),
-                  )
-                ),
-              ],
-            ),
-                
+                  ),
+                ],
+              )
             ],
           ),
         ),

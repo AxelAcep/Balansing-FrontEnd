@@ -39,6 +39,7 @@ void main() async {
         // Daftarkan provider baru untuk riwayat
         ChangeNotifierProvider(create: (_) => RiwayatProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => RecapProvider()),
       ],
       child: const MyApp(),
     ),
