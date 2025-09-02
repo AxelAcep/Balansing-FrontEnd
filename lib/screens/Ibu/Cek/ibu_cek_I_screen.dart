@@ -1,4 +1,5 @@
 import 'package:balansing/screens/Ibu/Cek/ibu_cek_II_screen.dart';
+import 'package:balansing/screens/Ibu/Cek/ibu_tutorial_I_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/card/CekAnakCard.dart';
@@ -341,8 +342,14 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                     ],
                   ),
                   GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         print("Tutorial button tapped");
+                        await Navigator.push( // Await the push so you can refresh
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TutorialFlowScreen(),
+                          ),
+                        );
                       },
                       child: Text("Tutorial",
                           style: GoogleFonts.poppins(

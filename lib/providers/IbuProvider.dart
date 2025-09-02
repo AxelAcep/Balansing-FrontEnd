@@ -49,9 +49,11 @@ class RecapProvider with ChangeNotifier {
           gender: data['jenisKelamin'],
           weight: data['beratBadan']?.toDouble() ?? 0.0,
           height: data['tinggiBadan']?.toDouble() ?? 0.0,
-          stuntingStatus: _mapStuntingStatus(data['stunting'] as String),
+          stuntingStatus: data['stunting'],
           hasAnemia: data['anemia'] as bool,
+          id: data['kodeRecap'],
           childNumber: index + 1,
+          anakId: data['id'],
         );
       }).toList();
       
@@ -66,13 +68,13 @@ class RecapProvider with ChangeNotifier {
 
   StuntingStatus _mapStuntingStatus(String status) {
     switch (status.toLowerCase()) {
-      case 'normal':
+      case 'Normal':
         return StuntingStatus.normal;
-      case 'tinggi':
+      case 'Tinggi':
         return StuntingStatus.tall;
-      case 'pendek':
+      case 'Pendek':
         return StuntingStatus.short;
-      case 'sangat pendek':
+      case 'SangatPendek':
         return StuntingStatus.veryShort;
       default:
         return StuntingStatus.normal;

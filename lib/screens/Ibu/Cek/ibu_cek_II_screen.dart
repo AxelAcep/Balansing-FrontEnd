@@ -229,7 +229,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
         stuntingColor = const Color(0xFFFACC15);
         stuntingImage = 'assets/images/WarningIcon.png';
         break;
-      case 'Sangat Pendek':
+      case 'SangatPendek':
         stuntingStatusText = "Risiko Tinggi";
         stuntingDesc = "Berdasarkan data tinggi badan dan usia, Anak masuk kategori stunting. Ini berarti pertumbuhannya telah terhambat. Konsultasikan dengan tenaga medis dan pastikan mendapat asupan nutrisi seimbang dan pemantauan lanjutan.";
         stuntingColor = const Color(0xFFDC2626);

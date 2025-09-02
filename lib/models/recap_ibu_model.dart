@@ -11,6 +11,8 @@ class RecapAnak {
   final String statusStunting;
   final bool isAnemia;
   final int childNumber;
+  final String id;
+  final String anakId;
 
   RecapAnak({
     required this.namaAnak,
@@ -21,6 +23,8 @@ class RecapAnak {
     required this.statusStunting,
     required this.isAnemia,
     required this.childNumber,
+    required this.id,
+    required this.anakId,
   });
 
   factory RecapAnak.fromJson(Map<String, dynamic> json, int index) {
@@ -32,7 +36,9 @@ class RecapAnak {
       tinggiBadan: json['tinggiBadan']?.toDouble() ?? 0.0,
       statusStunting: json['statusStunting'] as String,
       isAnemia: json['isAnemia'] as bool,
+      id : json ['kodeRecap'] as String,
       childNumber: index + 1,
+      anakId: json ['id'],
     );
   }
 }
@@ -40,23 +46,6 @@ class RecapAnak {
 // Tambahkan ekstensi untuk mengonversi RecapAnak ke ChildData
 extension RecapAnakExtension on RecapAnak {
   ChildData toChildData() {
-    StuntingStatus status;
-    switch (statusStunting) {
-      case 'normal':
-        status = StuntingStatus.normal;
-        break;
-      case 'tall':
-        status = StuntingStatus.tall;
-        break;
-      case 'short':
-        status = StuntingStatus.short;
-        break;
-      case 'veryShort':
-        status = StuntingStatus.veryShort;
-        break;
-      default:
-        status = StuntingStatus.normal;
-    }
 
     return ChildData(
       name: namaAnak,
@@ -64,9 +53,11 @@ extension RecapAnakExtension on RecapAnak {
       gender: jenisKelamin,
       weight: beratBadan,
       height: tinggiBadan,
-      stuntingStatus: status,
+      stuntingStatus: statusStunting,
       hasAnemia: isAnemia,
       childNumber: childNumber,
+      id : id,
+      anakId: anakId,
     );
   }
 }

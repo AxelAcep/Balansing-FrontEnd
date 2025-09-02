@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:balansing/screens/Ibu/Cek/ibu_cek_II_screen.dart';
 
 // Enum untuk status stunting
 enum StuntingStatus {
@@ -16,9 +17,11 @@ class ChildData {
   final String gender;
   final double weight;
   final double height;
-  final StuntingStatus stuntingStatus;
+  final String stuntingStatus;
   final bool hasAnemia;
   final int childNumber;
+  final String id;
+  final String anakId;
 
   ChildData({
     required this.name,
@@ -29,12 +32,9 @@ class ChildData {
     required this.stuntingStatus,
     required this.hasAnemia,
     required this.childNumber,
+    required this.id,
+    required this.anakId,
   });
-
-  bool get isStunting {
-    return stuntingStatus == StuntingStatus.short ||
-        stuntingStatus == StuntingStatus.veryShort;
-  }
 }
 
 // Widget card untuk menampilkan data anak
@@ -52,11 +52,21 @@ class ChildCard extends StatefulWidget {
 
 class _ChildCardState extends State<ChildCard> {
   bool _isExpanded = false;
+  bool isStunting = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Set isStunting based on stuntingStatus
+    isStunting = widget.child.stuntingStatus == 'short' || widget.child.stuntingStatus == 'veryShort';
+  }
+
+  
 
   Color get _statusColor {
-    if (widget.child.isStunting && widget.child.hasAnemia) {
+    if (isStunting && widget.child.hasAnemia) {
       return const Color(0xFFF96262); // Merah
-    } else if (widget.child.isStunting || widget.child.hasAnemia) {
+    } else if (isStunting || widget.child.hasAnemia) {
       return const Color(0xFFE9B958); // Kuning Pastel
     } else {
       return const Color(0xFF67B056); // Hijau
@@ -64,9 +74,9 @@ class _ChildCardState extends State<ChildCard> {
   }
 
   String get _statusText {
-    if (widget.child.isStunting && widget.child.hasAnemia) {
+    if (isStunting && widget.child.hasAnemia) {
       return 'Stunting & Anemia';
-    } else if (widget.child.isStunting) {
+    } else if (isStunting) {
       return 'Stunting';
     } else if (widget.child.hasAnemia) {
       return 'Anemia';
@@ -85,6 +95,8 @@ class _ChildCardState extends State<ChildCard> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
+
+    isStunting = widget.child.stuntingStatus == 'Pendek' || widget.child.stuntingStatus == 'SangatPendek';
 
     return Card(
       elevation: 0,
@@ -212,8 +224,15 @@ class _ChildCardState extends State<ChildCard> {
                             border: Border.all(color: const Color(0xFF76A73B)),
                           ),
                           child: TextButton(
-                            onPressed: () {
+                            onPressed: () async {
                               print('Button "Lihat Hasil" pressed!');
+                              print(widget.child.id);
+                              await Navigator.push( // Await the push so you can refresh
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => IbuCekIIScreen(id: widget.child.id, idAnak: widget.child.anakId),
+                                ),
+                              );
                             },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
