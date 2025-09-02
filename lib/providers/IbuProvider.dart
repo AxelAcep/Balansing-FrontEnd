@@ -3,6 +3,7 @@ import 'package:balansing/models/ibu_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:balansing/services/ibu_services.dart';
 import 'package:balansing/card/RiwayatIbuCard.dart'; // Import StuntingStatus`
+import 'package:balansing/models/dashboard_data.dart';
 
 class RecapProvider with ChangeNotifier {
   List<ChildData> _monthlyRecaps = [];
@@ -124,6 +125,36 @@ class ProfileProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Gagal mengambil data profil: $e');
+    }
+  }
+}
+
+
+class DashboardIbuProvider with ChangeNotifier {
+  final IbuServices _dashboardService = IbuServices();
+  DashboardData? _data;
+  bool _isLoading = false;
+  String? _error;
+
+  DashboardData? get data => _data;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  Future<void> fetchDashboardData(String id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final responseData = await _dashboardService.getDataDashboard(id);
+      _data = DashboardData.fromJson(responseData['data']);
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      print("Error fetching dashboard data: $_error");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

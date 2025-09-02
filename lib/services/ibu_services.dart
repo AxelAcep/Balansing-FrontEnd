@@ -113,6 +113,31 @@ Future<List<dynamic>> getMonthlyRecap(String id, int month, int year) async {
   }
 }
 
+Future<Map<String, dynamic>> getDataDashboard(String id) async {
+  final url = Uri.parse('$_baseUrl/dashboard/$id');
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${User.instance.token}',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Decode body sebagai Map<String, dynamic> karena API mengembalikan objek tunggal
+      final Map<String, dynamic> responseData = jsonDecode(response.body);
+      return responseData;
+    } else {
+      final Map<String, dynamic> errorBody = jsonDecode(response.body);
+      throw Exception('Gagal mendapatkan data anak. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+    }
+  } catch (e) {
+    print('Terjadi kesalahan saat mendapatkan data anak: $e');
+    throw Exception('Terjadi kesalahan jaringan atau server: $e');
+  }
+}
+
 Future<Map<String, dynamic>> getDashboardAnak(String id) async {
   final url = Uri.parse('$_baseUrl/allRecapAnak/$id');
   try {

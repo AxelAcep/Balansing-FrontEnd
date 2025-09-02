@@ -40,6 +40,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RiwayatProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => RecapProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardIbuProvider()),
       ],
       child: const MyApp(),
     ),
