@@ -51,24 +51,35 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
   }
 
   Future<void> _fetchChildData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  setState(() {
+    _isLoading = true;
+  });
 
-    try {
-      final Map<String, dynamic> data = await IbuServices().getDetailAnak(widget.id);
+  try {
+    final Map<String, dynamic> data = await IbuServices().getDetailAnak(widget.id);
+    if (data.isEmpty) {
+      // Jika data kosong, tampilkan data kosong (tapi tidak error secara total)
+      setState(() {
+        _childData = {}; // Kosongkan data anak
+        _isLoading = false;
+        _showSnackbar("Tidak ada data anak ditemukan.", Colors.red, Colors.white);
+      });
+    } else {
+      // Jika data berhasil diambil, simpan datanya
       setState(() {
         _childData = data;
         _isLoading = false;
       });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = "Gagal memuat data: $e";
-      });
     }
+  } catch (e) {
+    // Jika ada error, tetap tampilkan UI tetapi dengan data kosong atau ???
+    setState(() {
+      _childData = null; // Atur data menjadi null atau biarkan data sebelumnya
+      _isLoading = false;
+      _showSnackbar("Gagal memuat data: Periksa koneksi internet.", Colors.red, Colors.white);
+    });
   }
+}
 
   String _calculateAge(DateTime birthDate) {
     final now = DateTime.now();
@@ -406,7 +417,7 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Tanggal Lahir",
+                          "Tanggal Pemeriksaan",
                           style: GoogleFonts.poppins(
                               fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
                         ),

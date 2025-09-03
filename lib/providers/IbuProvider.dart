@@ -140,6 +140,17 @@ class DashboardIbuProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
+  void setError(String message) {
+    _error = message;
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  void setData(DashboardData? newData) {
+    _data = newData;
+    notifyListeners();
+  }
+
   Future<void> fetchDashboardData(String id) async {
     _isLoading = true;
     _error = null;
@@ -152,6 +163,7 @@ class DashboardIbuProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       print("Error fetching dashboard data: $_error");
+      _data = null;
     } finally {
       _isLoading = false;
       notifyListeners();

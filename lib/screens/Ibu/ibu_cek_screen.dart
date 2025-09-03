@@ -9,6 +9,7 @@ import 'package:balansing/card/CekAnakCard.dart';
 import 'package:balansing/providers/IbuProvider.dart';
 import 'package:balansing/models/user_model.dart';
 import 'package:balansing/screens/Ibu/Cek/ibu_riwayat_screen.dart';
+import 'package:balansing/screens/Ibu/Quiz/ibu_quiz_managerI_screen.dart';
 
 class IbuCekScreen extends StatefulWidget {
   const IbuCekScreen({super.key});
@@ -21,7 +22,8 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
   // Variabel state untuk melacak indeks card yang sedang terpilih
   int _selectedIndex = -1; // -1 berarti tidak ada yang terpilih
   bool cekDate = false;
-  bool quizDone = false;
+  bool quizDone = true;
+  final QuizScoreManager _scoreManager = QuizScoreManager();
 
   @override
   void initState() {
@@ -272,8 +274,17 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                           width: double.infinity, // Ini akan membuat widget memenuhi lebar parent
                           height: MediaQuery.of(context).size.height * 0.04, // Mengatur tinggi sesuai permintaan Anda
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               print("Page Quiz");
+
+                                _scoreManager.resetScore();
+
+                               await Navigator.push( // Await the push so you can refresh
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => IbuQuizManagerIScreen(),
+                                      ),
+                                    );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF9FC86A),
