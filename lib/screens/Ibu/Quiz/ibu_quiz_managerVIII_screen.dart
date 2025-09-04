@@ -175,7 +175,7 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerVIIIScreen> {
                 ],
               ),
             ),
-            SizedBox(height: height * 0.02)
+            SizedBox(height: height * 0.05)
           ],
         ),
       ),

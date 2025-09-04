@@ -5,8 +5,8 @@ import 'package:balansing/models/user_model.dart';
 
 
 class KaderServices {
-  final String _baseUrl = 'http://10.0.2.2:5500/api/kader';
-  //final String _baseUrl = 'http://localhost:5500/api/kader'; 
+  //final String _baseUrl = 'http://10.0.2.2:5500/api/kader';
+  final String _baseUrl = 'http://localhost:5500/api/kader'; 
 
   // Mengubah tipe kembalian menjadi Future<Map<String, dynamic>>
   Future<Map<String, dynamic>> getKader(String email) async {

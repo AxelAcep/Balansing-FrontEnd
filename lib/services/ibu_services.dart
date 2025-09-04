@@ -5,8 +5,8 @@ import 'package:balansing/models/user_model.dart';
 
 
 class IbuServices {
-  final String _baseUrl = 'http://10.0.2.2:5500/api/ibu';
-  //inal String _baseUrl = 'http://localhost:5500/api/ibu'; 
+  //final String _baseUrl = 'http://10.0.2.2:5500/api/ibu';
+  final String _baseUrl = 'http://localhost:5500/api/ibu'; 
 
 // lib/api_service.dart
 

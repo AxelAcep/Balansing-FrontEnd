@@ -190,7 +190,7 @@ class _IbuQuizManagerIIScreenState extends State<IbuQuizManagerIIScreen> {
                 ],
               ),
             ),
-            SizedBox(height: height * 0.02)
+            SizedBox(height: height * 0.05)
           ],
         ),
       ),

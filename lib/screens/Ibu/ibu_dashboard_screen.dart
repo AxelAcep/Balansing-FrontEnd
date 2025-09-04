@@ -6,7 +6,7 @@ import 'package:balansing/screens/Ibu/ibu_artikel_screen.dart';
 import 'package:balansing/screens/Ibu/ibu_beranda_screen.dart';
 import 'package:balansing/screens/Ibu/ibu_cek_screen.dart';
 import 'package:balansing/screens/Ibu/ibu_profil_screen.dart';
-import 'package:balansing/screens/Ibu/ibu_makanan_screen copy 3.dart';
+import 'package:balansing/screens/Ibu/ibu_makanan_screen.dart';
 
 
 class IbuDashboardScreen extends StatefulWidget {
