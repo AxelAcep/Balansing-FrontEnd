@@ -83,7 +83,7 @@ class _ForgotscreenState extends State<Forgotscreen> {
         buttonEnabled ? const Color(0xFF9FC86A) : const Color(0xFF878b94);
 
     return Scaffold(
-      body: Container(
+      body: SingleChildScrollView(
         child: Container(
           width: double.infinity,
           color: Colors.white,

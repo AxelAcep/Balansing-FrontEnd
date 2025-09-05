@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/screens/Ibu/Makanan/Makanan_Ibu_Screen.dart';
+import 'package:balansing/screens/Ibu/Makanan/Makanan_Tutorial_Screen.dart';
 
 
 class IbuMakananScreen extends StatefulWidget {
@@ -57,6 +58,12 @@ class _IbuMakananScreenState extends State<IbuMakananScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                                   print("Tombol Selanjutnya ditekan!");
+                                   await Navigator.push( // Await the push so you can refresh
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MakananTutorialScreen(),
+                                    ),
+                                  );
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFF4F9EC) ,
@@ -110,11 +117,11 @@ class _IbuMakananScreenState extends State<IbuMakananScreen> {
                         child: ElevatedButton(
                           onPressed: () async {
                                   await Navigator.push( // Await the push so you can refresh
-          context,
-          MaterialPageRoute(
-            builder: (context) => MakananIbuScreen(),
-          ),
-        );
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MakananIbuScreen(),
+                                    ),
+                                  );
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF9FC86A) ,

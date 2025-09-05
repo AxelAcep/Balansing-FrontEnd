@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:balansing/models/user_model.dart';
+import 'package:path/path.dart' as p;
 //import 'package:balansing/models/kader_model.dart'; 
 
 
@@ -8,7 +10,6 @@ class IbuServices {
   //final String _baseUrl = 'http://10.0.2.2:5500/api/ibu';
   final String _baseUrl = 'http://localhost:5500/api/ibu'; 
 
-// lib/api_service.dart
 
 Future<List<dynamic>> getMonthlyRecap(String id, int month, int year) async {
   final url = Uri.parse('$_baseUrl/recapMonthly');
@@ -32,6 +33,47 @@ Future<List<dynamic>> getMonthlyRecap(String id, int month, int year) async {
     }
   } catch (e) {
     print('Terjadi kesalahan saat mendapatkan data anak: $e');
+    throw Exception('Terjadi kesalahan jaringan atau server: $e');
+  }
+}
+
+Future<List<dynamic>> cekMakanan(String filePath) async {
+  // Ganti nama method agar lebih sesuai dengan fungsinya
+  final url = Uri.parse('$_baseUrl/makanan');
+
+  try {
+    // 1. Buat request multipart
+    final request = http.MultipartRequest('POST', url);
+
+    // 2. Tambahkan header otentikasi
+    request.headers.addAll({
+      'Authorization': 'Bearer ${User.instance.token}',
+    });
+
+    // 3. Tambahkan file ke request
+    final file = await http.MultipartFile.fromPath(
+      'file', // Nama field harus "file" sesuai dengan upload.single('file') di backend
+      filePath,
+      contentType: MediaType('image', p.extension(filePath).substring(1)),
+    );
+    request.files.add(file);
+
+    // 4. Kirim request dan tunggu respons
+    final response = await request.send();
+
+    // 5. Baca respons dari stream
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200) {
+      // Dekode respons body
+      final List<dynamic> responseData = jsonDecode(responseBody);
+      return responseData;
+    } else {
+      final Map<String, dynamic> errorBody = jsonDecode(responseBody);
+      throw Exception('Gagal memproses gambar. Status: ${response.statusCode}, Pesan: ${errorBody['error'] ?? 'Tidak ada pesan error'}');
+    }
+  } catch (e) {
+    print('Terjadi kesalahan saat mengunggah file: $e');
     throw Exception('Terjadi kesalahan jaringan atau server: $e');
   }
 }
