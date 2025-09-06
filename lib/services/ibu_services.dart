@@ -374,6 +374,33 @@ Future<Map<String, dynamic>> getDetailRecap(String id) async {
     }
   }
 
+   Future<Map<String, dynamic>> generateKeberagamanMakanan(List<String> dds) async {
+    final url = Uri.parse('$_baseUrl/analisis-makanan'); // Ubah endpoint agar lebih spesifik
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${User.instance.token}',
+        },
+        body: jsonEncode({
+          "DDS": dds, 
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        final Map<String, dynamic> errorBody = jsonDecode(response.body);
+        throw Exception(
+            'Gagal melakukan analisis makanan. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+      }
+    } catch (e) {
+      print('Terjadi kesalahan saat melakukan analisis makanan: $e');
+      throw Exception('Terjadi kesalahan jaringan atau server: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> generateSanitasi(List<Map<String, dynamic>> quizHistory) async {
     final url = Uri.parse('$_baseUrl/analisis-sanitasi');
     try {

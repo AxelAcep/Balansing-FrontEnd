@@ -20,7 +20,7 @@ class IbuBerandaScreen extends StatefulWidget {
 }
 
 class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
-  String _activeButton = 'Rekomendasi';
+  String _activeButton = 'Pertumbuhan';
   String? _selectedAnakId;
   late final IbuServices _ibuServices;
 

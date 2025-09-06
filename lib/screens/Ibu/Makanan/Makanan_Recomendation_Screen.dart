@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:balansing/services/ibu_services.dart'; // Pastikan path ini benar
 
 class MakananRecomendationScreen extends StatefulWidget {
   final List<String> DDS;
@@ -8,10 +9,10 @@ class MakananRecomendationScreen extends StatefulWidget {
   const MakananRecomendationScreen({super.key, required this.DDS});
 
   @override
-  State<MakananRecomendationScreen> createState() => _MakananConfirmScreenState();
+  State<MakananRecomendationScreen> createState() => _MakananRecomendationScreenState();
 }
 
-class _MakananConfirmScreenState extends State<MakananRecomendationScreen> {
+class _MakananRecomendationScreenState extends State<MakananRecomendationScreen> {
   // Map untuk menyimpan nama tampilan dari setiap kategori
   final Map<String, String> _labelNames = {
     "makanan_berpati": "Sumber Karbohidrat",
@@ -23,30 +24,12 @@ class _MakananConfirmScreenState extends State<MakananRecomendationScreen> {
     "buah_sayur_vitA": "Buah dan sayur vitamin A",
   };
 
-  String _activeButton = 'Rekomendasi'; 
+  String _activeButton = 'Rekomendasi';
+  String _markdownRekomendasi = "Sedang memuat rekomendasi..."; // Teks awal sebelum loading
+  bool _isLoading = true;
+  final IbuServices _ibuServices = IbuServices();
 
-  String markdownRekomendasi = """
-## Nutrisi Seimbang Harian
-Menjaga kondisi tetap sehat dimulai dari asupan gizi yang lengkap dan rutin.
-1. Sajikan makanan bergizi seimbang: karbohidrat, protein, lemak sehat, serat, vitamin, dan mineral.
-2. Pastikan konsumsi makanan sumber zat besi (hati ayam, daging merah, bayam) dan kalsium (susu, keju, tahu).
-3. Variasikan menu setiap hari agar anak tidak bosan dan mendapat beragam nutrisi.
-
-## Pola Makan Teratur & Penuh Stimulasi
-Bukan hanya "apa yang dimakan", tapi juga "bagaimana proses makannya".
-1. Biasakan makan 3 kali sehari + 2 camilan sehat (buah, yogurt, kacang).
-2. Libatkan anak dalam memilih atau menyiapkan makanan (menanam sayur, bantu cuci buah).
-3. Gunakan momen makan sebagai waktu komunikasi dan edukasi (misal: cerita tentang manfaat wortel untuk mata).
-
-## Tidur & Istirahat yang Cukup
-Tidur yang cukup berpengaruh besar terhadap pertumbuhan fisik dan konsentrasi.
-1. Pastikan anak tidur sesuai usia (balita: 10–13 jam/hari, usia sekolah: 9–11 jam).
-2. Ciptakan rutinitas malam hari yang tenang (tidak layar, tidak makanan berat, suasana remang).
-3. Bangunkan anak dengan lembut dan mulai hari dengan rutinitas positif.
-""";
-
-// Tambahkan variabel baru untuk konten "Artikel"
-String markdownArtikel = """
+  String markdownArtikel = """
 ## Pentingnya Gizi Seimbang untuk Anak
 Gizi seimbang adalah kunci utama untuk memastikan anak tumbuh optimal. Kekurangan nutrisi bisa menyebabkan berbagai masalah kesehatan, termasuk stunting dan anemia.
 
@@ -65,27 +48,55 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
 """;
 
   @override
+  void initState() {
+    super.initState();
+    _loadRekomendasi();
+  }
+
+  Future<void> _loadRekomendasi() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final result = await _ibuServices.generateKeberagamanMakanan(widget.DDS);
+      setState(() {
+        _markdownRekomendasi = result["rekomendasi"] ?? "Gagal memuat rekomendasi.";
+      });
+    } catch (e) {
+      setState(() {
+        _markdownRekomendasi = "Terjadi kesalahan: $e";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
     String status;
     Color warnaStatus;
+    String deskripsi;
 
-    String deskripsi = "Sempurna, Bunda! Hari ini menu si Kecil sudah mencakup semua 7 kelompok pangan esensial. Pertahankan terus prestasi hebat ini untuk dukung tumbuh kembangnya!";
+    int ddsCount = widget.DDS.length;
 
-    if ((widget.DDS).length >= 6) {
+    if (ddsCount == 7) {
       status = "Sangat Beragam";
       warnaStatus = const Color(0xFF9FC86A);
-      deskripsi = "Luar biasa, Bunda! Menu si Kecil hari ini sudah sangat beragam, mencakup 6 dari 7 kelompok pangan. Tinggal satu langkah kecil lagi untuk mencapai gizi sempurna!";
-    } else if ((widget.DDS).length >= 4) {
+      deskripsi = "Sempurna, Bunda! Hari ini menu si Kecil sudah mencakup semua 7 kelompok pangan esensial. Pertahankan terus prestasi hebat ini untuk dukung tumbuh kembangnya!";
+    } else if (ddsCount >= 4 && ddsCount <= 6) {
       status = "Cukup Beragam";
       warnaStatus = const Color(0xFFFACC15);
-      deskripsi = "Bagus sekali, Bunda! Hari ini si Kecil sudah mencapai target minimal keberagaman pangan dengan ${(widget.DDS).length} dari 7 kelompok. Ini adalah fondasi yang kuat, yuk besok kita coba tambahkan 1 jenis makanan lagi!";
-    } else {
+      deskripsi = "Bagus sekali, Bunda! Hari ini si Kecil sudah mencapai target minimal keberagaman pangan dengan $ddsCount dari 7 kelompok. Ini adalah fondasi yang kuat, yuk besok kita coba tambahkan 1 jenis makanan lagi!";
+    } else { // ddsCount <= 3
       status = "Kurang Beragam";
       warnaStatus = const Color(0xFFDC2626);
-      deskripsi = "Semangat selalu ya, Bunda! Hari ini menu si Kecil mencakup ${(widget.DDS).length} dari 7 kelompok pangan. Mari kita mulai langkah pertama besok dengan mencoba menambahkan sepotong buah atau satu jenis sayuran hijau.";
+      deskripsi = "Semangat selalu ya, Bunda! Hari ini menu si Kecil mencakup $ddsCount dari 7 kelompok pangan. Mari kita mulai langkah pertama besok dengan mencoba menambahkan sepotong buah atau satu jenis sayuran hijau.";
     }
 
     Widget buildButton(String buttonText, String activeState) {
@@ -101,12 +112,10 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
         onTap: () {
           setState(() {
             _activeButton = activeState;
-            // Tambahkan logika untuk mengganti konten di sini
-            // misalnya: _showRekomendasiContent() atau _showArtikelContent()
           });
         },
         child: Container(
-          width: width*0.36, // Atur lebar sesuai kebutuhan
+          width: width * 0.36,
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             color: isActive ? activeColor : inactiveColor,
@@ -182,7 +191,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              " ${widget.DDS.length}",
+                              " $ddsCount",
                               style: GoogleFonts.poppins(
                                 fontSize: width * 0.055,
                                 fontWeight: FontWeight.w600,
@@ -210,7 +219,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
                     ),
                     SizedBox(height: height * 0.01),
                     LinearProgressIndicator(
-                      value: widget.DDS.length / 7,
+                      value: ddsCount / 7,
                       backgroundColor: const Color(0xFFF1F5F9),
                       valueColor: AlwaysStoppedAnimation<Color>(warnaStatus),
                       minHeight: height * 0.018,
@@ -240,35 +249,16 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Kelompok Makanan",
-                          style: GoogleFonts.poppins(
-                            fontSize: width * 0.045,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        GestureDetector(
-                          child: Text(
-                            "Edukasi",
-                            style: GoogleFonts.poppins(
-                              fontSize: width * 0.035,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF9FC86A),
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                          onTap: () {
-                            print("Test Boy");
-                          },
-                        ),
-                      ],
+                    Text(
+                      "Kelompok Makanan",
+                      style: GoogleFonts.poppins(
+                        fontSize: width * 0.045,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    //7 List Daftar ada apa tidak, Icon Ceklis / Icon Warning Nama Kategori
+                    SizedBox(height: height * 0.02),
                     ListView.builder(
-                      padding: EdgeInsets.symmetric(vertical: height*0.02),
+                      padding: EdgeInsets.symmetric(vertical: height * 0.02),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _labelNames.length,
@@ -279,7 +269,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
                         Color textColor = isPresent ? const Color(0xFF64748B) : const Color(0xFFFACC15);
                         IconData icon = isPresent ? Icons.check_circle_outline : Icons.info_outline;
                         return Container(
-                          margin: EdgeInsets.only(bottom: height*0.005),
+                          margin: EdgeInsets.only(bottom: height * 0.005),
                           child: Row(
                             children: [
                               Icon(
@@ -304,100 +294,100 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
                   ],
                 ),
               ),
-
-              SizedBox(height: height*0.02),
-
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-                    ),
-                    child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                       Text(
-                "Rekomendasi Khusus Bunda",
-                style: GoogleFonts.poppins(
-                  fontSize: width * 0.05,
-                  fontWeight: FontWeight.w600,
-                  color: const Color.fromARGB(255, 0, 0, 0),
+              SizedBox(height: height * 0.02),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
                 ),
-              ),
-              SizedBox(height: height*0.02,),
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Rekomendasi Khusus Bunda",
+                      style: GoogleFonts.poppins(
+                        fontSize: width * 0.05,
+                        fontWeight: FontWeight.w600,
+                        color: const Color.fromARGB(255, 0, 0, 0),
+                      ),
+                    ),
+                    SizedBox(height: height * 0.02),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         buildButton("Informasi Nutrisi", "Rekomendasi"),
                         buildButton("Resep", "Artikel"),
+                      ],
+                    ),
+                    SizedBox(height: height * 0.02),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
                         ],
                       ),
-                      SizedBox(height: height*0.02),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1), // Warna bayangan (transparan)
-                              spreadRadius: 1, // Sebaran bayangan
-                              blurRadius: 5, // Kehalusan bayangan
-                              offset: const Offset(0, 3), // Posisi bayangan (x, y)
-                            ),
-                          ],
-                        ),
-                        child: _activeButton == 'Rekomendasi'
-                        ? Container(
-                            child: MarkdownBody(
-                              data: markdownRekomendasi,
-                              styleSheet: MarkdownStyleSheet(
-                                h2: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18),
-                                p: GoogleFonts.poppins(fontSize: 14),
-                                listBullet: GoogleFonts.poppins(fontSize: 14),
-                              ),
-                            ),
-                          )
-                        : Container(
-                            child: MarkdownBody(
+                      child: _activeButton == 'Rekomendasi'
+                          ? _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : MarkdownBody(
+                                  data: _markdownRekomendasi,
+                                  styleSheet: MarkdownStyleSheet(
+                                    h2: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18),
+                                    p: GoogleFonts.poppins(fontSize: 14),
+                                    listBullet: GoogleFonts.poppins(fontSize: 14),
+                                  ),
+                                )
+                          : MarkdownBody(
                               data: markdownArtikel,
                               styleSheet: MarkdownStyleSheet(
                                 h2: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18),
                                 p: GoogleFonts.poppins(fontSize: 14),
                                 listBullet: GoogleFonts.poppins(fontSize: 14),
                               ),
-                            )),
-                      ),
-                    ],
-                    )
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: height * 0.02),
+              Container(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF9FC86A),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12.0),
+                    elevation: 0,
                   ),
-                  SizedBox(height: height * 0.02),
-                   Container(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // Navigate to the next screen and wait for it to return
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF9FC86A),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            "Kembali",
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: width * 0.035,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: height * 0.05),
+                  child: Text(
+                    "Kembali",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: width * 0.035,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: height * 0.05),
             ],
           ),
         ),
