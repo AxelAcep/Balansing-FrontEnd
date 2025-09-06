@@ -37,6 +37,56 @@ Future<List<dynamic>> getMonthlyRecap(String id, int month, int year) async {
   }
 }
 
+Future<List<Map<String, dynamic>>> getArticle() async {
+  final url = Uri.parse('$_baseUrl/artikel');
+  try {
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${User.instance.token}',
+      }
+    );
+
+    if (response.statusCode == 200) {
+      // Mengonversi response.body ke List<Map<String, dynamic>>
+      final List<dynamic> responseData = jsonDecode(response.body);
+      return responseData.cast<Map<String, dynamic>>();
+    } else {
+      final Map<String, dynamic> errorBody = jsonDecode(response.body);
+      throw Exception('Gagal mendapatkan data artikel. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+    }
+  } catch (e) {
+    print('Terjadi kesalahan saat mendapatkan data artikel: $e');
+    throw Exception('Terjadi kesalahan jaringan atau server: $e');
+  }
+}
+
+Future<Map<String, dynamic>> getDetailArticle(String id) async {
+    final url = Uri.parse('$_baseUrl/artikel/$id');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${User.instance.token}',
+        }
+      );
+
+      if (response.statusCode == 200) {
+        // Mengonversi response.body ke satu Map
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        final Map<String, dynamic> errorBody = jsonDecode(response.body);
+        throw Exception('Gagal mendapatkan data artikel. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+      }
+    } catch (e) {
+      print('Terjadi kesalahan saat mendapatkan data artikel: $e');
+      throw Exception('Terjadi kesalahan jaringan atau server: $e');
+    }
+  }
+
 Future<List<dynamic>> cekMakanan(String filePath) async {
   // Ganti nama method agar lebih sesuai dengan fungsinya
   final url = Uri.parse('$_baseUrl/makanan');
@@ -311,6 +361,28 @@ Future<Map<String, dynamic>> getDetailRecap(String id) async {
           'Authorization': 'Bearer ${User.instance.token}',
         },
         body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        final Map<String, dynamic> errorBody = jsonDecode(response.body);
+        throw Exception('Gagal mengupload anak kader. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
+      }}catch (e) {
+      print('Terjadi kesalahan saat memperbarui profil kader: $e');
+      throw Exception('Terjadi kesalahan jaringan atau server: $e');
+    }
+  }
+
+    Future<Map<String, dynamic>> generateRekomendasi(String id) async {
+    final url = Uri.parse('$_baseUrl/analisis-gizi/$id');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${User.instance.token}',
+        },
       );
 
       if (response.statusCode == 201) {

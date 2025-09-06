@@ -136,9 +136,11 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
       print("Navigasi ke halaman hasil dengan data: $response");
       print({response['anakIbu']['anakIbuId']});
       
+      final response2 = await IbuServices().generateRekomendasi(response['anakIbu']['kodeRecap']);
+      print("Data berhasil dikirim: $response2");
+
 
       Navigator.pop(context, true); 
-
       await Navigator.push( // Await the push so you can refresh
           context,
           MaterialPageRoute(

@@ -18,33 +18,17 @@ class _IbuCekIIScreenState extends State<IbuCekIIScreen> {
   Map<String, dynamic>? _anakData;
   Map<String, dynamic>? _recapData;
   Map<String, dynamic>? _lastData;
-  int? beratBadan;
-  int? tinggiBadan;
-  int? lastberatBadan;
-  int? lasttinggiBadan;
-  int? selisihBerat;
-  int? selisihTinggi;
+  double? beratBadan;
+  double? tinggiBadan;
+  double? lastberatBadan;
+  double? lasttinggiBadan;
+  double? selisihBerat;
+  double? selisihTinggi;
   bool _isLoading = true;
   String _activeButton = 'Rekomendasi'; 
 
 String markdownRekomendasi = """
-## Nutrisi Seimbang Harian
-Menjaga kondisi tetap sehat dimulai dari asupan gizi yang lengkap dan rutin.
-1. Sajikan makanan bergizi seimbang: karbohidrat, protein, lemak sehat, serat, vitamin, dan mineral.
-2. Pastikan konsumsi makanan sumber zat besi (hati ayam, daging merah, bayam) dan kalsium (susu, keju, tahu).
-3. Variasikan menu setiap hari agar anak tidak bosan dan mendapat beragam nutrisi.
-
-## Pola Makan Teratur & Penuh Stimulasi
-Bukan hanya "apa yang dimakan", tapi juga "bagaimana proses makannya".
-1. Biasakan makan 3 kali sehari + 2 camilan sehat (buah, yogurt, kacang).
-2. Libatkan anak dalam memilih atau menyiapkan makanan (menanam sayur, bantu cuci buah).
-3. Gunakan momen makan sebagai waktu komunikasi dan edukasi (misal: cerita tentang manfaat wortel untuk mata).
-
-## Tidur & Istirahat yang Cukup
-Tidur yang cukup berpengaruh besar terhadap pertumbuhan fisik dan konsentrasi.
-1. Pastikan anak tidur sesuai usia (balita: 10–13 jam/hari, usia sekolah: 9–11 jam).
-2. Ciptakan rutinitas malam hari yang tenang (tidak layar, tidak makanan berat, suasana remang).
-3. Bangunkan anak dengan lembut dan mulai hari dengan rutinitas positif.
+Test
 """;
 
 // Tambahkan variabel baru untuk konten "Artikel"
@@ -82,13 +66,13 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
         _recapData = recapData['currentRecap'];
         _lastData = recapData['previousRecap'];
         
-        beratBadan = _recapData?['beratBadan'] as int? ?? 0;
-        tinggiBadan = _recapData?['tinggiBadan'] as int? ?? 0;
+        beratBadan = (_recapData?['beratBadan'] as num?)?.toDouble() ?? 0.0;
+        tinggiBadan = (_recapData?['tinggiBadan'] as num?)?.toDouble() ?? 0.0;
         
         // Cek jika _lastData tidak null, baru ambil nilainya. Jika null, tetap null.
         if (_lastData != null) {
-          lastberatBadan = _lastData!['beratBadan'] as int?;
-          lasttinggiBadan = _lastData!['tinggiBadan'] as int?;
+          lastberatBadan = (_lastData?['beratBadan'] as num?)?.toDouble() ?? 0.0;
+          lasttinggiBadan = (_lastData?['tinggiBadan'] as num?)?.toDouble() ?? 0.0;
         }
         
         // Lakukan perhitungan hanya jika _lastData tidak null
@@ -99,6 +83,10 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
           selisihBerat = 0; // Atau biarkan null jika Anda ingin menanganinya di UI
           selisihTinggi = 0; // Atau biarkan null jika Anda ingin menanganinya di UI
         }
+
+        print(_recapData?['rekomendasi']);
+        markdownRekomendasi = (_recapData?['rekomendasi'] ?? "").toString();
+
 
         _isLoading = false;
       });
@@ -321,7 +309,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
     }
 
 
-    Widget _buildProgressCard(int now, int? late, int? selisih, String title, String unit) {
+    Widget _buildProgressCard(double? now, double? late, double? selisih, String title, String unit) {
       String lateText = late != null ? "$late $unit" : "-";
       String selisihText = selisih != null ? "${selisih < 0 ? '' : '+'}${selisih} $unit" : "-";
       Color selisihColor = selisih != null

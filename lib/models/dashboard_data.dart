@@ -3,6 +3,7 @@ class DashboardData {
     final String tanggalPeriksaTerakhir;
     final double bb;
     final double tb;
+    final String rekomendasi;
     final int umur;
     final String statusStunting;
     final bool statusAnemia;
@@ -23,8 +24,9 @@ class DashboardData {
         required this.statusStunting,
         required this.statusAnemia,
         required this.zScore,
-        this.bbSebelumnya,
-        this.tbSebelumnya,
+        required this.rekomendasi,
+        required this.bbSebelumnya,
+        required this.tbSebelumnya,
         required this.rataRataBB12Bulan,
         required this.rataRataTB12Bulan,
         required this.dataBB12Bulan,
@@ -38,6 +40,7 @@ class DashboardData {
             bb: json['bb'].toDouble(),
             tb: json['tb'].toDouble(),
             umur: json['umur'],
+            rekomendasi: json['rekomendasi'],
             statusStunting: json['statusStunting'],
             statusAnemia: json['statusAnemia'],
             zScore: json['zScore'].toDouble(),

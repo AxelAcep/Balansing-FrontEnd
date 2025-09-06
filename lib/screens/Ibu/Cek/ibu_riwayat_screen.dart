@@ -168,6 +168,7 @@ class _IbuRiwayatScreenState extends State<IbuRiwayatScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: height*0.03,)
               ],
             ),
           );

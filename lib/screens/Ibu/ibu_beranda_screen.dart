@@ -355,25 +355,7 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
     final String formattedDate =
         "${lastCheckDate.day} ${_getMonthName(lastCheckDate.month)} ${lastCheckDate.year}";
 
-    final markdownRekomendasi = """
-## Nutrisi Seimbang Harian
-Menjaga kondisi tetap sehat dimulai dari asupan gizi yang lengkap dan rutin.
-1. Sajikan makanan bergizi seimbang: karbohidrat, protein, lemak sehat, serat, vitamin, dan mineral.
-2. Pastikan konsumsi makanan sumber zat besi (hati ayam, daging merah, bayam) dan kalsium (susu, keju, tahu).
-3. Variasikan menu setiap hari agar anak tidak bosan dan mendapat beragam nutrisi.
-
-## Pola Makan Teratur & Penuh Stimulasi
-Bukan hanya "apa yang dimakan", tapi juga "bagaimana proses makannya".
-1. Biasakan makan 3 kali sehari + 2 camilan sehat (buah, yogurt, kacang).
-2. Libatkan anak dalam memilih atau menyiapkan makanan (menanam sayur, bantu cuci buah).
-3. Gunakan momen makan sebagai waktu komunikasi dan edukasi (misal: cerita tentang manfaat wortel untuk mata).
-
-## Tidur & Istirahat yang Cukup
-Tidur yang cukup berpengaruh besar terhadap pertumbuhan fisik dan konsentrasi.
-1. Pastikan anak tidur sesuai usia (balita: 10–13 jam/hari, usia sekolah: 9–11 jam).
-2. Ciptakan rutinitas malam hari yang tenang (tidak layar, tidak makanan berat, suasana remang).
-3. Bangunkan anak dengan lembut dan mulai hari dengan rutinitas positif.
-""";
+    final markdownRekomendasi = data.rekomendasi;
 
     return SingleChildScrollView(
       child: Container(
