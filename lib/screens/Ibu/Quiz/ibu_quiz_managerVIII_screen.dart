@@ -138,6 +138,10 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerVIIIScreen> {
                             print('Selanjutnya');
                             _scoreManager.addScore(_selectedOption ?? 0);
                             print(_scoreManager.ReturnScore());
+                            _scoreManager.addAnswerHistory(
+                                question: "Apakah si Kecil buang air besar di toiler?",
+                                userAnswer: _selectedOption == 1 ? "Ya" : "Tidak",
+                            );
                             Navigator.pop(context);
                             Navigator.push(
                               context,

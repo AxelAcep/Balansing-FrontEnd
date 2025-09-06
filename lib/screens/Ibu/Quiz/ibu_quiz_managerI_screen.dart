@@ -16,7 +16,11 @@ class QuizScoreManager {
   // Variabel yang akan menyimpan total poin
   int _totalScore = 0;
 
+  // Variabel baru: List untuk menyimpan riwayat pertanyaan dan jawaban
+  final List<Map<String, String>> _quizHistory = [];
+
   int get totalScore => _totalScore;
+  List<Map<String, String>> get quizHistory => _quizHistory;
 
   // Metode untuk menambahkan poin
   void addScore(int score) {
@@ -24,14 +28,38 @@ class QuizScoreManager {
     print("Skor bertambah: $score. Total skor saat ini: $_totalScore");
   }
 
-  int ReturnScore(){
+  // Metode baru untuk menambahkan riwayat pertanyaan dan jawaban
+  void addAnswerHistory({
+    required String question,
+    required String userAnswer,
+  }) {
+    final historyEntry = {
+      'question': question,
+      'userAnswer': userAnswer,
+    };
+    _quizHistory.add(historyEntry);
+    print("Jawaban untuk pertanyaan '$question' telah ditambahkan.");
+  }
+
+  int ReturnScore() {
     return totalScore;
   }
 
-  // Metode untuk mereset skor
+  List<Map<String, String>> ReturnQuiz(){
+    return _quizHistory;
+  }
+
+  // Metode untuk mereset skor DAN riwayat
   void resetScore() {
     _totalScore = 0;
+    _quizHistory.clear();
     print("Skor telah direset. Total skor: $_totalScore");
+    print("Riwayat pertanyaan juga telah dikosongkan.");
+  }
+
+  // Metode untuk menampilkan riwayat
+  void printQuizHistory() {
+    print(_quizHistory);
   }
 }
 

@@ -32,6 +32,17 @@ class _IbuQuizManagerVScreenState extends State<IbuQuizManagerVScreen> {
     });
   }
 
+  void _addAnswersToHistory() {
+    _scoreManager.addAnswerHistory(
+      question: "Kapan Saja si Kecil menyikat gigi?",
+      userAnswer : """
+        'Saat mandi pagi': $_isMorningSelected,
+        'Setelah makan siang': $_isAfternoonSelected,
+        'Sebelum tidur malam': $_isEveningSelected,
+      """
+    );
+  }
+
   // Check if all questions have been answered
   bool get _allQuestionsAnswered =>
       _isMorningSelected != null &&
@@ -165,6 +176,7 @@ class _IbuQuizManagerVScreenState extends State<IbuQuizManagerVScreen> {
                             // Calculate the score and add it to the manager
                             int currentScore = _calculateScore();
                             _scoreManager.addScore(currentScore);
+                            _addAnswersToHistory();
                             print('Total poin yang ditambahkan: $currentScore');
                             print('Total skor keseluruhan: ${_scoreManager.totalScore}');
                             

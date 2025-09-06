@@ -1,7 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:balansing/screens/Ibu/Quiz/ibu_quiz_managerI_screen.dart';
 import 'package:balansing/screens/Ibu/Quiz/ibu_quiz_managerIII_screen.dart';
+
+// Asumsi QuizScoreManager dan QuizOptionButton sudah didefinisikan di file lain
+// seperti yang diimpor di kode asli Anda.
+// Saya menyertakan QuizOptionButton di sini untuk kelengkapan.
+
+class QuizScoreManager {
+  final List<String> _answerHistory = [];
+  int _score = 0;
+
+  void addAnswerHistory({required String question, required String userAnswer}) {
+    // Implementasi untuk menyimpan riwayat jawaban
+    _answerHistory.add('Pertanyaan: $question, Jawaban: $userAnswer');
+    print('Riwayat Jawaban Ditambahkan: $_answerHistory');
+  }
+
+  void addScore(int scoreToAdd) {
+    // Implementasi untuk menambahkan skor
+    _score += scoreToAdd;
+    print('Skor Ditambahkan. Total Skor: $_score');
+  }
+
+  void resetScore() {
+    _score = 0;
+    _answerHistory.clear();
+    print('Skor Direset. Total Skor: $_score');
+  }
+}
 
 class IbuQuizManagerIIScreen extends StatefulWidget {
   const IbuQuizManagerIIScreen({super.key});
@@ -14,6 +40,13 @@ class _IbuQuizManagerIIScreenState extends State<IbuQuizManagerIIScreen> {
   // Variabel untuk menyimpan pilihan pengguna
   int? _selectedOption; // Variabel ini akan menyimpan 0 (A), 1 (B), atau 2 (C)
   final QuizScoreManager _scoreManager = QuizScoreManager();
+
+  // Daftar deskripsi jawaban
+  final List<String> _answerDescriptions = [
+    '0 - 2 Juta Rupiah, Kami sangat cermat dalam mengatur pengeluaran. Lauk utama kami sehari-hari adalah protein nabati (seperti tahu dan tempe) dan telur, dengan sesekali lauk ikan atau ayam.',
+    '2 - 9 Juta Rupiah, Kami bisa rutin menyediakan lauk hewani seperti ayam dan beragam jenis ikan setiap minggunya, dan cukup leluasa memilih jenis sayur dan buah di pasar.',
+    '> 9 Juta Rupiah, Kami sangat leluasa dalam memilih bahan makanan, bisa membeli berbagai jenis lauk termasuk daging sapi secara rutin, dan sering berbelanja di supermarket.',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -152,7 +185,19 @@ class _IbuQuizManagerIIScreenState extends State<IbuQuizManagerIIScreen> {
                         ? null // Tombol dinonaktifkan jika belum ada pilihan
                         : () {
                             print('Selanjutnya');
+                            // Menambahkan skor
                             _scoreManager.addScore(_selectedOption ?? 0);
+                            
+                            // Mendapatkan jawaban yang benar dari daftar
+                            String selectedAnswer = _answerDescriptions[_selectedOption!];
+
+                            // Menyimpan riwayat jawaban dengan nilai yang benar
+                            _scoreManager.addAnswerHistory(
+                                question: "Penghasilan Keluarga",
+                                userAnswer: selectedAnswer,
+                            );
+                            
+                            // Navigasi ke layar berikutnya
                             Navigator.pop(context);
                             Navigator.push(
                               context,

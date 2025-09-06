@@ -78,7 +78,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
       status = "Sangat Beragam";
       warnaStatus = const Color(0xFF9FC86A);
       deskripsi = "Luar biasa, Bunda! Menu si Kecil hari ini sudah sangat beragam, mencakup 6 dari 7 kelompok pangan. Tinggal satu langkah kecil lagi untuk mencapai gizi sempurna!";
-    } else if ((widget.DDS).length >= 5) {
+    } else if ((widget.DDS).length >= 4) {
       status = "Cukup Beragam";
       warnaStatus = const Color(0xFFFACC15);
       deskripsi = "Bagus sekali, Bunda! Hari ini si Kecil sudah mencapai target minimal keberagaman pangan dengan ${(widget.DDS).length} dari 7 kelompok. Ini adalah fondasi yang kuat, yuk besok kita coba tambahkan 1 jenis makanan lagi!";

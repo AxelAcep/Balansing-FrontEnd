@@ -34,6 +34,18 @@ class _IbuQuizManagerVIIScreenState extends State<IbuQuizManagerVIIScreen> {
     });
   }
 
+  void _addAnswersToHistory() {
+    _scoreManager.addAnswerHistory(
+      question: "Kapan Saja si Kecil Mencuci Tangan?",
+      userAnswer : """
+        'Sebelum Makan': $_isQ1Selected,
+        'Sesudah Makan': $_isQ2Selected,
+        'Sebelum BAK/BAB': $_isQ3Selected,
+        'Sesudah BAK/BAB': $_isQ4Selected,
+      """
+    );
+  }
+
   // Memeriksa apakah semua pertanyaan sudah dijawab
   bool get _allQuestionsAnswered =>
       _isQ1Selected != null &&
@@ -173,6 +185,7 @@ class _IbuQuizManagerVIIScreenState extends State<IbuQuizManagerVIIScreen> {
                         ? () {
                             int currentScore = _calculateScore();
                             _scoreManager.addScore(currentScore);
+                            _addAnswersToHistory();
                             print('Total poin yang ditambahkan: $currentScore');
                             print('Total skor keseluruhan: ${_scoreManager.totalScore}');
                             

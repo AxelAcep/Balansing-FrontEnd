@@ -137,6 +137,10 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerVIScreen> {
                         : () {
                             print('Selanjutnya');
                             _scoreManager.addScore(_selectedOption ?? 0);
+                            _scoreManager.addAnswerHistory(
+                                question: "Mencuci Tangan Setiap Hati",
+                                userAnswer: _selectedOption == 1 ? "Ya" : "Tidak",
+                            );
                             Navigator.pop(context);
                             Navigator.push(
                               context,
