@@ -89,7 +89,12 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
       status = "Sangat Beragam";
       warnaStatus = const Color(0xFF9FC86A);
       deskripsi = "Sempurna, Bunda! Hari ini menu si Kecil sudah mencakup semua 7 kelompok pangan esensial. Pertahankan terus prestasi hebat ini untuk dukung tumbuh kembangnya!";
-    } else if (ddsCount >= 4 && ddsCount <= 6) {
+    }
+    else if (ddsCount >= 5 && ddsCount < 7) {
+      status = "Beragam";
+      warnaStatus = const Color(0xFF9FC86A);
+      deskripsi = "Bagus sekali, Bunda! Hari ini si Kecil sudah mencapai target keberagaman pangan dengan $ddsCount dari 7 kelompok. Ini adalah fondasi yang kuat, yuk besok kita coba tambahkan 1 jenis makanan lagi!";
+    } else if (ddsCount >= 4 && ddsCount <= 4) {
       status = "Cukup Beragam";
       warnaStatus = const Color(0xFFFACC15);
       deskripsi = "Bagus sekali, Bunda! Hari ini si Kecil sudah mencapai target minimal keberagaman pangan dengan $ddsCount dari 7 kelompok. Ini adalah fondasi yang kuat, yuk besok kita coba tambahkan 1 jenis makanan lagi!";

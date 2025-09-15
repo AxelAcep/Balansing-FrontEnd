@@ -120,7 +120,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                       image: DecorationImage(
                         fit: BoxFit.cover,
                         image: NetworkImage(
-                          'https://th.bing.com/th/id/OIP.LlyCbCQzCNj09nSh50xwJgHaGL?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3',
+                          'https://fqpalkzlylkiqmnsizji.supabase.co/storage/v1/object/public/Video/Images/Kader.png',
                         ),
                       ),
                     ),

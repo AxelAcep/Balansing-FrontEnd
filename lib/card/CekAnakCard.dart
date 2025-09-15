@@ -21,7 +21,7 @@ class ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
-    
+
     final double imageSize = screenWidth * 0.23;
     final double horizontalSpacing = screenWidth * 0.04;
     final double iconSize = screenWidth * 0.04;
@@ -70,50 +70,67 @@ class ProfileCard extends StatelessWidget {
             ),
           ),
           SizedBox(width: horizontalSpacing),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: TextStyle(
-                  fontSize: titleFontSize,
-                  fontWeight: FontWeight.bold,
+          // Wrap the Column with Expanded to give it flexible space
+          Expanded( // <-- Perubahan di sini
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  overflow: TextOverflow.ellipsis, // <-- Perubahan di sini
+                  maxLines: 1, // <-- Pastikan hanya satu baris
                 ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.cake, size: iconSize, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    birthDate,
-                    style: TextStyle(fontSize: subTextFontSize, color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today, size: iconSize, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    age,
-                    style: TextStyle(fontSize: subTextFontSize, color: Colors.grey),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.male, size: iconSize, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    gender,
-                    style: TextStyle(fontSize: subTextFontSize, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.cake, size: iconSize, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Expanded( // <-- Perubahan di sini
+                      child: Text(
+                        birthDate,
+                        style: TextStyle(fontSize: subTextFontSize, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis, // <-- Perubahan di sini
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: iconSize, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Expanded( // <-- Perubahan di sini
+                      child: Text(
+                        age,
+                        style: TextStyle(fontSize: subTextFontSize, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis, // <-- Perubahan di sini
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.male, size: iconSize, color: Colors.grey),
+                    const SizedBox(width: 8),
+                    Expanded( // <-- Perubahan di sini
+                      child: Text(
+                        gender,
+                        style: TextStyle(fontSize: subTextFontSize, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis, // <-- Perubahan di sini
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

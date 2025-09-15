@@ -54,13 +54,14 @@ class _IbuProfilScreenState extends State<IbuProfilScreen> {
         _ibuProfileRawData = jsonEncode(data);
         _namaIbu = data['nama'] ?? 'Tidak Tersedia';
         _jumlahAnak = data['jumlah'] ?? '??';
+        _jumlahAnak = data['_count']['anakAnak'].toString();
       });
       print("Kader Profile Data: $data");
     } catch (e) {
       setState(() {
         _ibuProfileRawData = "Gagal memuat profil: $e";
         _namaIbu = "Gagal memuat";
-        _jumlahAnak = "??";
+        _jumlahAnak = "-";
       });
       print('Error fetching kader profile: $e');
       print(_ibuProfileRawData);
@@ -112,7 +113,7 @@ class _IbuProfilScreenState extends State<IbuProfilScreen> {
                       image: DecorationImage(
                         fit: BoxFit.cover,
                         image: NetworkImage(
-                          'https://th.bing.com/th/id/OIP.LlyCbCQzCNj09nSh50xwJgHaGL?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3',
+                          'https://fqpalkzlylkiqmnsizji.supabase.co/storage/v1/object/public/Video/Images/Ibu.png',
                         ),
                       ),
                     ),

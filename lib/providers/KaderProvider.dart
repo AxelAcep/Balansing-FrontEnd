@@ -120,6 +120,12 @@ class DashboardProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  double? _stuntingChangePercentage;
+  double? _anemiaChangePercentage;
+
+  double? get stuntingChangePercentage => _stuntingChangePercentage;
+  double? get anemiaChangePercentage => _anemiaChangePercentage;
+
   List<PieData> get pieChartData => _pieChartData;
   List<MonthlyData> get monthlyAnemiaStuntingData => _monthlyAnemiaStuntingData; // Getter yang baru
   List<AgeGroupData> get ageDistributionData => _ageDistributionData;
@@ -232,7 +238,93 @@ class DashboardProvider with ChangeNotifier {
     _calculateMonthlyDataAnemia(data);
     _calculateStuntingPieChartData(data);
 
+  _calculateStuntingChangePercentage(data);
+  _calculateAnemiaChangePercentage(data);
+
   }
+
+  void _calculateStuntingChangePercentage(List<Map<String, dynamic>> data) {
+  // Sort data by date in ascending order
+  data.sort((a, b) {
+    final dateA = DateTime.parse(a['tanggal']);
+    final dateB = DateTime.parse(b['tanggal']);
+    return dateA.compareTo(dateB);
+  });
+
+  // Get the most recent two months
+  final uniqueMonths = data.map((d) => DateTime.parse(d['tanggal']).month).toSet().toList();
+  uniqueMonths.sort();
+
+  if (uniqueMonths.length < 2) {
+    _stuntingChangePercentage = null; // Not enough data to compare
+    return;
+  }
+
+  final currentMonth = uniqueMonths.last;
+  final previousMonth = uniqueMonths[uniqueMonths.length - 2];
+
+  int currentStuntingCount = 0;
+  int previousStuntingCount = 0;
+
+  for (var child in data) {
+    final childMonth = DateTime.parse(child['tanggal']).month;
+    final stuntingStatus = child['stunting'] as String? ?? '';
+    final isStunting = stuntingStatus == 'SangatPendek' || stuntingStatus == 'Pendek';
+
+    if (childMonth == currentMonth && isStunting) {
+      currentStuntingCount++;
+    } else if (childMonth == previousMonth && isStunting) {
+      previousStuntingCount++;
+    }
+  }
+
+  if (previousStuntingCount == 0) {
+    _stuntingChangePercentage = currentStuntingCount > 0 ? 100.0 : 0.0;
+  } else {
+    _stuntingChangePercentage = ((currentStuntingCount - previousStuntingCount) / previousStuntingCount) * 100;
+  }
+}
+
+void _calculateAnemiaChangePercentage(List<Map<String, dynamic>> data) {
+  // Sort data by date in ascending order
+  data.sort((a, b) {
+    final dateA = DateTime.parse(a['tanggal']);
+    final dateB = DateTime.parse(b['tanggal']);
+    return dateA.compareTo(dateB);
+  });
+
+  // Get the most recent two months
+  final uniqueMonths = data.map((d) => DateTime.parse(d['tanggal']).month).toSet().toList();
+  uniqueMonths.sort();
+
+  if (uniqueMonths.length < 2) {
+    _anemiaChangePercentage = null; // Not enough data to compare
+    return;
+  }
+
+  final currentMonth = uniqueMonths.last;
+  final previousMonth = uniqueMonths[uniqueMonths.length - 2];
+
+  int currentAnemiaCount = 0;
+  int previousAnemiaCount = 0;
+
+  for (var child in data) {
+    final childMonth = DateTime.parse(child['tanggal']).month;
+    final isAnemia = child['anemia'] as bool? ?? false;
+
+    if (childMonth == currentMonth && isAnemia) {
+      currentAnemiaCount++;
+    } else if (childMonth == previousMonth && isAnemia) {
+      previousAnemiaCount++;
+    }
+  }
+
+  if (previousAnemiaCount == 0) {
+    _anemiaChangePercentage = currentAnemiaCount > 0 ? 100.0 : 0.0;
+  } else {
+    _anemiaChangePercentage = ((currentAnemiaCount - previousAnemiaCount) / previousAnemiaCount) * 100;
+  }
+}
 
   void _calculateStuntingPieChartData(List<Map<String, dynamic>> data) {
     int sangatPendekCount = 0;

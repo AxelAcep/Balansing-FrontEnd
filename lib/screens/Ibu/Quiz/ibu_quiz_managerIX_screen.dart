@@ -138,7 +138,7 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerIXScreen> {
                             print('Selanjutnya');
                             _scoreManager.addScore(_selectedOption ?? 0);
                              _scoreManager.addAnswerHistory(
-                                question: "Apakah si Kecil buang air besar di toilet?",
+                                question: "Apakah anda menggunakan air mineral untuk masak dan minum?",
                                 userAnswer: _selectedOption == 1 ? "Ya" : "Tidak",
                             );
                             Navigator.pop(context);

@@ -4,6 +4,7 @@ class DashboardData {
     final double bb;
     final double tb;
     final String rekomendasi;
+    final String jenisKelamin;
     final int umur;
     final String statusStunting;
     final bool statusAnemia;
@@ -24,6 +25,7 @@ class DashboardData {
         required this.statusStunting,
         required this.statusAnemia,
         required this.zScore,
+        required this.jenisKelamin,
         required this.rekomendasi,
         required this.bbSebelumnya,
         required this.tbSebelumnya,
@@ -50,6 +52,7 @@ class DashboardData {
             rataRataTB12Bulan: json['rataRataTB12Bulan'],
             dataBB12Bulan: json['data12BulanTerakhir']['bb'],
             dataTB12Bulan: json['data12BulanTerakhir']['tb'],
+            jenisKelamin: json['jenisKelamin'],
         );
     }
 }

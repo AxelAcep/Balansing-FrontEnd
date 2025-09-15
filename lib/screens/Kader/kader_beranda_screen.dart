@@ -6,6 +6,7 @@ import 'package:balansing/models/filter_model.dart';
 import 'package:balansing/providers/KaderProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:balansing/card/filterModal.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class BerandaScreen extends StatefulWidget {
   const BerandaScreen({super.key});
@@ -47,6 +48,25 @@ class _BerandaScreenState extends State<BerandaScreen> {
       },
     );
   }
+
+  String markdownArtikel = """
+# Penyuluhan dan Pemantauan Stunting & Anemia
+---
+### Tingginya Data Stunting dan Anemia
+Berdasarkan data yang diterima, kasus **stunting** dan **anemia** pada ibu hamil dan balita menunjukkan angka yang cukup tinggi di wilayah kita. Angka ini menjadi lampu kuning yang harus segera ditangani secara serius. Stunting dapat menyebabkan dampak jangka panjang yang signifikan pada pertumbuhan fisik dan kognitif anak, sementara anemia pada ibu hamil dapat meningkatkan risiko komplikasi saat persalinan. 
+
+---
+### Pentingnya Penyuluhan Eksplisit dan Detail
+Untuk mengatasi masalah ini, diperlukan program **penyuluhan yang lebih eksplisit dan mendalam**. Penyuluhan tidak bisa hanya bersifat umum, melainkan harus menyentuh akar permasalahan di tingkat keluarga. Materi penyuluhan harus mencakup pentingnya nutrisi seimbang, pola makan yang benar, serta pemahaman tentang gejala dan cara pencegahan stunting dan anemia.
+
+---
+### Pemantauan Terus Menerus
+Selain penyuluhan, **pemantauan secara rutin dan detail** menjadi kunci keberhasilan. Setiap kasus stunting dan anemia harus dipantau secara individual untuk memastikan intervensi yang diberikan berjalan efektif. Pemantauan ini bisa meliputi pengukuran berat dan tinggi badan secara berkala, pemeriksaan kadar hemoglobin, serta konseling gizi yang berkelanjutan. 
+
+---
+### Ajakan Bertindak
+Mari kita bersama-sama bergerak untuk menurunkan angka stunting dan anemia. Dengan **penyuluhan yang efektif dan pemantauan yang ketat**, kita dapat menciptakan generasi yang lebih sehat dan kuat.
+    """;
 
   @override
   void initState() {
@@ -122,6 +142,9 @@ class _BerandaScreenState extends State<BerandaScreen> {
           final month = filterModel.month;
           final count = filterModel.count;
           final year = filterModel.year;
+
+          final anemiaPersen = dashboardProvider.anemiaChangePercentage;
+          final stuntingPersen = dashboardProvider.stuntingChangePercentage;
 
           late String dateData;
 
@@ -208,7 +231,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                               image: DecorationImage(
                                 fit: BoxFit.cover,
                                 image: NetworkImage(
-                                  'https://th.bing.com/th/id/OIP.LlyCbCQzCNj09nSh50xwJgHaGL?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3',
+                                  'https://fqpalkzlylkiqmnsizji.supabase.co/storage/v1/object/public/Video/Images/Kader.png',
                                 ),
                               ),
                             ),
@@ -615,34 +638,39 @@ class _BerandaScreenState extends State<BerandaScreen> {
                               ),
                             ),
                             SizedBox(height: height * 0.01),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
+                           Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              if (stuntingPersen != null) ...[ // Tampilkan hanya jika ada data persentase
+                                // Logika untuk menentukan ikon dan warna berdasarkan nilai persentase
                                 Icon(
-                                  Icons.trending_down,
-                                  color: const Color(0xFF76A73B),
+                                  stuntingPersen >= 0 ? Icons.trending_up : Icons.trending_down,
+                                  color: stuntingPersen >= 0 ? const Color(0xFFF43F5E) : const Color(0xFF76A73B),
                                   size: height * 0.02,
                                 ),
                                 SizedBox(width: width * 0.01),
                                 Text(
-                                  "Turun 50%",
+                                  // Menampilkan teks persentase
+                                  '${stuntingPersen.abs().toStringAsFixed(0)}%', // .abs() untuk menghilangkan tanda minus
                                   style: GoogleFonts.poppins(
                                     fontSize: height * 0.015,
                                     fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF76A73B),
+                                    color: stuntingPersen >= 0 ? const Color(0xFFF43F5E) : const Color(0xFF76A73B),
                                   ),
                                 ),
                                 SizedBox(width: width * 0.02),
-                                Text(
-                                  "kasus selama 6 bulan",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: height * 0.015,
-                                    fontWeight: FontWeight.w400,
-                                    color: const Color(0xFF60646C),
-                                  ),
-                                ),
                               ],
-                            )
+                              // Teks kasus
+                              Text(
+                                stuntingPersen != null ? "kasus ${stuntingPersen >= 0 ? 'naik' : 'turun'} dari bulan lalu" : "Data bulan lalu tidak tersedia",
+                                style: GoogleFonts.poppins(
+                                  fontSize: height * 0.015,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF60646C),
+                                ),
+                              ),
+                            ],
+                          ),
                           ],
                         ),
                       ),
@@ -946,23 +974,28 @@ class _BerandaScreenState extends State<BerandaScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                Icon(
-                                  Icons.trending_down,
-                                  color: const Color(0xFF76A73B),
-                                  size: height * 0.02,
-                                ),
-                                SizedBox(width: width * 0.01),
-                                Text(
-                                  "Turun 50%",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: height * 0.015,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF76A73B),
+                                if (anemiaPersen != null) ...[ // Tampilkan hanya jika ada data persentase
+                                  // Logika untuk menentukan ikon dan warna berdasarkan nilai persentase
+                                  Icon(
+                                    anemiaPersen >= 0 ? Icons.trending_up : Icons.trending_down,
+                                    color: anemiaPersen >= 0 ? const Color(0xFFF43F5E) : const Color(0xFF76A73B),
+                                    size: height * 0.02,
                                   ),
-                                ),
-                                SizedBox(width: width * 0.02),
+                                  SizedBox(width: width * 0.01),
+                                  Text(
+                                    // Menampilkan teks persentase
+                                    '${anemiaPersen.abs().toStringAsFixed(0)}%', // .abs() untuk menghilangkan tanda minus
+                                    style: GoogleFonts.poppins(
+                                      fontSize: height * 0.015,
+                                      fontWeight: FontWeight.w500,
+                                      color: anemiaPersen >= 0 ? const Color(0xFFF43F5E) : const Color(0xFF76A73B),
+                                    ),
+                                  ),
+                                  SizedBox(width: width * 0.02),
+                                ],
+                                // Teks kasus
                                 Text(
-                                  "kasus selama 6 bulan",
+                                  anemiaPersen != null ? "kasus ${anemiaPersen >= 0 ? 'naik' : 'turun'} dari bulan lalu" : "Data bulan lalu tidak tersedia",
                                   style: GoogleFonts.poppins(
                                     fontSize: height * 0.015,
                                     fontWeight: FontWeight.w400,
@@ -1672,8 +1705,16 @@ class _BerandaScreenState extends State<BerandaScreen> {
                         ),
                       ),
                       SizedBox(height: height*0.01),
+                      MarkdownBody(
+                              data: markdownArtikel,
+                              styleSheet: MarkdownStyleSheet(
+                                h2: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18),
+                                p: GoogleFonts.poppins(fontSize: 14),
+                                listBullet: GoogleFonts.poppins(fontSize: 14),
+                              ),
+                            )
                   ])
-                )
+                ),
               ],
             ),
           ),

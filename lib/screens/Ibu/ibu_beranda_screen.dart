@@ -367,28 +367,31 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
           children: [
             SizedBox(height: height * 0.04),
             GestureDetector(
-              onTap: _showAnakSelectionModal,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
+            onTap: _showAnakSelectionModal,
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
                     "Dashboard ${data.nama}",
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.04,
                       fontWeight: FontWeight.w600,
                     ),
+                    overflow: TextOverflow.ellipsis, // Tambahkan ini jika mau ...
+                    maxLines: 1, // dan ini
                   ),
-                  const Icon(Icons.arrow_drop_down, color: Color(0xFF454545)),
-                ],
-              ),
+                ),
+                const Icon(Icons.arrow_drop_down, color: Color(0xFF454545)),
+              ],
             ),
+          ),
             BabyInfoCard(
               name: data.nama,
               lastCheckUp: formattedDate,
               weight: '${data.bb.toStringAsFixed(1)} kg',
               height: '${data.tb.toStringAsFixed(1)} cm',
               age: _formatAge(data.umur),
-              gender: 'laki-laki',
+              gender: '${data.jenisKelamin}',
             ),
             SizedBox(height: height * 0.02),
             Row(

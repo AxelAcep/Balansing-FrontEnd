@@ -51,6 +51,7 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
   Future<void> _loadSanitasiRekomendasi() async {
     try {
       final quizHistory = _scoreManager.ReturnQuiz();
+      print(quizHistory);
       final IbuServices _ibuServices = IbuServices();
 
       final result = await _ibuServices.generateSanitasi(quizHistory);

@@ -319,7 +319,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                               onTap: () {
                                 print("Lewati Quiz");
                                 setState(() {
-                                  quizDone = false;
+                                  //quizDone = false;
                                 });
                               },
                               child: Text("Ingatkan Kembali",

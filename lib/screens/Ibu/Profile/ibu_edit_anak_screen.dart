@@ -316,7 +316,7 @@ Future<void> _DeleteAnak(String id) async{
                     style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
                   ),
                   Text(
-                    "Data anak ke-1",
+                    "Data anak",
                     style: GoogleFonts.poppins(
                         fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
                   ),

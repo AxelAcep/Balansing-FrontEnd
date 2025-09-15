@@ -147,7 +147,7 @@ class GrowthIndicatorCard extends StatelessWidget {
           ),
           SizedBox(height: width * 0.01),
           Text(
-            'Persentil ke-$count',
+            'Data Anak',
             style: GoogleFonts.poppins(
               fontSize: width * 0.035,
               fontWeight: FontWeight.w500,
