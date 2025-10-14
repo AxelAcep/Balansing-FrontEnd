@@ -4,11 +4,10 @@ import 'package:http_parser/http_parser.dart';
 import 'package:balansing/models/user_model.dart';
 import 'package:path/path.dart' as p;
 //import 'package:balansing/models/kader_model.dart'; 
-
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import paket
 
 class IbuServices {
-  //final String _baseUrl = 'http://10.0.2.2:5500/api/ibu';
-  final String _baseUrl = 'http://localhost:5500/api/ibu'; 
+  final String _baseUrl = '${dotenv.env['API_USER_URL']}/api/ibu';
 
 
 Future<List<dynamic>> getMonthlyRecap(String id, int month, int year) async {

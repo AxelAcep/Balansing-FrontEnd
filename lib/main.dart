@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Import your custom User model
 import 'package:balansing/models/user_model.dart' as app_user;
@@ -25,6 +26,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
   await app_user.User.loadFromPrefs();
+
+  try {
+    await dotenv.load(fileName: ".env");
+    print('DEBUG: File .env berhasil dimuat.');
+  } catch (e) {
+    print('ERROR: Gagal memuat file .env: $e');
+  }
 
   runApp(
     // Gunakan MultiProvider untuk mendaftarkan semua provider

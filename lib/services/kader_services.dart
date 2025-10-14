@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:balansing/models/user_model.dart';
 //import 'package:balansing/models/kader_model.dart'; 
-
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import paket
 
 class KaderServices {
-  //final String _baseUrl = 'http://10.0.2.2:5500/api/kader';
-  final String _baseUrl = 'http://localhost:5500/api/kader'; 
+  final String _baseUrl = '${dotenv.env['API_USER_URL']}/api/kader';
 
   // Mengubah tipe kembalian menjadi Future<Map<String, dynamic>>
   Future<Map<String, dynamic>> getKader(String email) async {
