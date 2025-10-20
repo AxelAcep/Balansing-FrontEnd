@@ -56,6 +56,8 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerIXScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             SizedBox(height: height * 0.02),
+            Image.asset('assets/images/AirPutih.jpg', width: double.infinity,),
+            SizedBox(height: height * 0.02),
             Text(
               "Apakah anda menggunakan air mineral untuk masak dan minum?",
               style: GoogleFonts.poppins(

@@ -56,6 +56,8 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerVIIIScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             SizedBox(height: height * 0.02),
+            Image.asset('assets/images/CuciTangan.jpg', width: double.infinity,),
+            SizedBox(height: height * 0.02),
             Text(
               "Apakah si Kecil buang air besar di toilet?",
               style: GoogleFonts.poppins(

@@ -56,6 +56,8 @@ class _IbuQuizManagerIVScreen extends State<IbuQuizManagerIVScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             SizedBox(height: height * 0.02),
+             Image.asset('assets/images/SikatGigi.jpg', width: double.infinity,),
+             SizedBox(height: height * 0.02),
             Text(
               "Apakah si Kecil biasa menyikat gigi setiap hari?",
               style: GoogleFonts.poppins(

@@ -56,6 +56,8 @@ class _IbuQuizManagerVIScreen extends State<IbuQuizManagerVIScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             SizedBox(height: height * 0.02),
+            Image.asset('assets/images/CuciTangan.jpg', width: double.infinity,),
+            SizedBox(height: height * 0.02),
             Text(
               "Apakah si Kecil biasa mencuci tangan setiap hari?",
               style: GoogleFonts.poppins(
