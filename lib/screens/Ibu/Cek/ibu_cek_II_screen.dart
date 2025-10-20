@@ -77,8 +77,12 @@ Jika Anda melihat tanda-tanda ini, segera lakukan pengukuran dan konsultasikan d
         
         // Lakukan perhitungan hanya jika _lastData tidak null
         if (_lastData != null) {
-          selisihBerat = (beratBadan ?? 0) - (lastberatBadan ?? 0);
-          selisihTinggi = (tinggiBadan ?? 0) - (lasttinggiBadan ?? 0);
+          double selisihBeratRaw = (beratBadan ?? 0) - (lastberatBadan ?? 0);
+          double selisihTinggiRaw = (tinggiBadan ?? 0) - (lasttinggiBadan ?? 0);
+
+          selisihBerat = (selisihBeratRaw * 100).round() / 100.0;
+          selisihTinggi = (selisihTinggiRaw * 100).round() / 100.0;
+          
         } else {
           selisihBerat = 0; // Atau biarkan null jika Anda ingin menanganinya di UI
           selisihTinggi = 0; // Atau biarkan null jika Anda ingin menanganinya di UI

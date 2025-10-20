@@ -14,12 +14,24 @@ class GrowthChartCard extends StatelessWidget {
   final String title;
   final List<GrowthData> data;
   final String unit;
+  final double datasebelum;
+
+  final String title2;
+  final String status2;
+  final double beratLahir;
+  final String unit2;
 
   const GrowthChartCard({
     Key? key,
     required this.title,
     required this.data,
     required this.unit,
+    required this.datasebelum,
+
+    required this.title2,
+    required this.status2,
+    required this.beratLahir,
+    required this.unit2,
   }) : super(key: key);
 
   String _getMonthLabel(int month) {
@@ -40,6 +52,7 @@ class GrowthChartCard extends StatelessWidget {
     }
   }
 
+
   Widget _getGrowthComparison(double width, String TextJenis) {
     if (data.length < 2) {
       return Text(
@@ -47,18 +60,63 @@ class GrowthChartCard extends StatelessWidget {
         style: GoogleFonts.poppins(fontSize: width * 0.025, color: Colors.grey),
       );
     }
-    final lastValue = data.last.value;
-    final secondLastValue = data[data.length - 2].value;
-    final growth = lastValue - secondLastValue;
-    final sign = growth >= 0 ? '↑' : '↓';
-    final color = growth >= 0 ? const Color(0xFF76A73B) : const Color(0xFFDC2626);
+    //final lastValue = data.last.value;
+    //final secondLastValue = data[data.length - 2].value;
+    //final growth = lastValue - secondLastValue;
+    final selisih = data.last.value - datasebelum;
+    final sign = selisih >= 0 ? '↑' : '↓';
+    final color = selisih >= 0 ? const Color(0xFF76A73B) : const Color(0xFFDC2626);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(TextJenis, style: GoogleFonts.poppins(fontSize: width*0.04, fontWeight: FontWeight.w600),),
         Text(
-          '$sign ${growth.abs().toStringAsFixed(1)} $unit',
+          '$sign ${selisih.abs().toStringAsFixed(1)} $unit',
+          style: GoogleFonts.poppins(
+            fontSize: width * 0.04,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _getGrowthComparison2(double width, String TextJenis, double beratLahir) {
+
+    //final lastValue = data.last.value;
+    //final secondLastValue = data[data.length - 2].value;
+    //final growth = lastValue - secondLastValue;
+
+    String status2 = '';
+    late Color color;
+
+    if(TextJenis == 'Berat Lahir'){
+      if(beratLahir >= 2500){
+        status2 = 'Normal';
+        color = const Color(0xFF76A73B);
+      } else {
+        status2 = 'Rendah';
+        color = const Color(0xFFFACC15);
+      }
+    } else if (TextJenis == 'Tinggi Lahir'){
+      if(beratLahir >= 45){
+        status2 = 'Normal';
+        color = const Color(0xFF76A73B);
+      } else {
+        status2 = 'Pendek';
+        color = const Color(0xFFFACC15);
+      }
+    }
+
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(TextJenis, style: GoogleFonts.poppins(fontSize: width*0.04, fontWeight: FontWeight.w600),),
+        Text(
+          '$status2',
           style: GoogleFonts.poppins(
             fontSize: width * 0.04,
             fontWeight: FontWeight.w600,
@@ -73,6 +131,21 @@ class GrowthChartCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
+
+    late String standar;
+    if(title2 == 'Berat Lahir'){
+      if(beratLahir >= 2500){
+        standar = 'Di atas ${beratLahir-2500} gram';
+      } else {
+        standar = 'Di bawah ${2500 - beratLahir} gram';
+      }
+    } else if (title2 == 'Tinggi Lahir'){
+      if(beratLahir >= 45){
+        standar = 'Di atas ${beratLahir-45} cm';
+      } else {
+        standar = 'Di bawah ${45-beratLahir} cm';
+      }
+    }
 
     return Container(
       width: double.infinity,
@@ -203,6 +276,14 @@ class GrowthChartCard extends StatelessWidget {
           ),
           SizedBox(height: height * 0.02),
           Container(
+            height: height * 0.15,
+            child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+            Container(
+            height: height * 0.12,
+            width: width * 0.75,
             padding: const EdgeInsets.all(16.0),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -257,7 +338,7 @@ class GrowthChartCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${data.length > 1 ? data[data.length - 2].value.toStringAsFixed(1) : '-'} $unit',
+                    '${datasebelum} $unit',
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.04,
                       fontWeight: FontWeight.bold,
@@ -269,7 +350,150 @@ class GrowthChartCard extends StatelessWidget {
           ),
               ],
             ),
+          ),
+          SizedBox(width: width * 0.04),
+          Container(
+            width: width * 0.75,
+            height: height * 0.12,
+            padding: const EdgeInsets.all(16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFFE2E8F0),
+                                  width: 0,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _getGrowthComparison2(width, title2, beratLahir),
+          SizedBox(height: height * 0.01),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$title2',
+                    style: GoogleFonts.poppins(
+                      fontSize: width * 0.03,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    '$beratLahir $unit2',
+                    style: GoogleFonts.poppins(
+                      fontSize: width * 0.04,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Standar',
+                    style: GoogleFonts.poppins(
+                      fontSize: width * 0.03,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    '${standar} $unit',
+                    style: GoogleFonts.poppins(
+                      fontSize: width * 0.03,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+              ],
+            ),
           )
+                  ],
+                ),
+              ),
+          )
+          // Container(
+          //   padding: const EdgeInsets.all(16.0),
+          //                     decoration: BoxDecoration(
+          //                       color: Colors.white,
+          //                       borderRadius: BorderRadius.circular(12),
+          //                       border: Border.all(
+          //                         color: const Color(0xFFE2E8F0),
+          //                         width: 0,
+          //                       ),
+          //                       boxShadow: [
+          //                         BoxShadow(
+          //                           color: Colors.grey.withOpacity(0.2),
+          //                           spreadRadius: 2,
+          //                           blurRadius: 5,
+          //                           offset: const Offset(0, 3),
+          //                         ),
+          //                       ],
+          //                     ),
+          //   child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.center,
+          //     children: [
+          //       _getGrowthComparison(width, title),
+          // SizedBox(height: height * 0.01),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //   children: [
+          //     Column(
+          //       crossAxisAlignment: CrossAxisAlignment.start,
+          //       children: [
+          //         Text(
+          //           'Sekarang:',
+          //           style: GoogleFonts.poppins(
+          //             fontSize: width * 0.03,
+          //             color: Colors.grey,
+          //           ),
+          //         ),
+          //         Text(
+          //           '${data.last.value.toStringAsFixed(1)} $unit',
+          //           style: GoogleFonts.poppins(
+          //             fontSize: width * 0.04,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //     Column(
+          //       crossAxisAlignment: CrossAxisAlignment.end,
+          //       children: [
+          //         Text(
+          //           'Sebelumnya:',
+          //           style: GoogleFonts.poppins(
+          //             fontSize: width * 0.03,
+          //             color: Colors.grey,
+          //           ),
+          //         ),
+          //         Text(
+          //           '${datasebelum} $unit',
+          //           style: GoogleFonts.poppins(
+          //             fontSize: width * 0.04,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ],
+          // ),
+          //     ],
+          //   ),
+          // )
         ],
       ),
     );

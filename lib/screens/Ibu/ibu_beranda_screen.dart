@@ -199,6 +199,33 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
         };
   }
 
+   Map<String, dynamic> _getLahirStatus(String status) {
+    switch (status) {
+      case 'lebih':
+      case 'normal':
+        return {
+          'text': "Sehat",
+          'color': const Color(0xFF9FC86A),
+          'image': 'assets/images/FineIcon.png',
+          'highlightColor': const Color(0xFFF4F9EC),
+        };
+      case 'kurang':
+        return {
+          'text': "Waspada",
+          'color': const Color(0xFFFACC15),
+          'image': 'assets/images/WarningIcon.png',
+          'highlightColor': const Color(0xFFFEF9C3),
+        };
+      default:
+        return {
+          'text': "Kondisi Sehat",
+          'color': const Color(0xFF9FC86A),
+          'image': 'assets/images/FineIcon.png',
+          'highlightColor': const Color(0xFFF4F9EC),
+        };
+    }
+  }
+
   Widget _buildResultCard({
     required String title,
     required String status,
@@ -350,6 +377,8 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
     // Menyiapkan data untuk Anemia Card
     _getAnemiaStatus(data.statusAnemia);
 
+    _getLahirStatus(data.kategoriL);
+
     // Format tanggal
     final DateTime lastCheckDate = DateTime.parse(data.tanggalPeriksaTerakhir);
     final String formattedDate =
@@ -443,6 +472,7 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
   Widget _buildGrowthSection(data, double width, double height) {
     final stuntingStatus = _getStuntingStatus(data.statusStunting);
     final anemiaStatus = _getAnemiaStatus(data.statusAnemia);
+    final lahirStatus = _getLahirStatus(data.kategoriL);
 
     return Column(
       children: [
@@ -495,6 +525,15 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
                       width: width,
                       height: height,
                     ),
+                    _buildResultCard(
+                      title: "Risiko Lahir",
+                      status: lahirStatus['text'],
+                      statusColor: lahirStatus['color'],
+                      imagePath: lahirStatus['image'],
+                      highlighColor: lahirStatus['highlightColor'],
+                      width: width,
+                      height: height,
+                    ),
                   ],
                 ),
               ),
@@ -516,11 +555,21 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
           title: 'Berat Badan',
           data: _mapToGrowthData(data.dataBB12Bulan),
           unit: 'kg',
+          datasebelum: data.bbSebelumnya,
+          title2: 'Berat Lahir',
+          status2: data.kategoriL,
+          beratLahir: data.bbl,
+          unit2: 'gram',
         ),
         GrowthChartCard(
           title: 'Tinggi Badan',
           data: _mapToGrowthData(data.dataTB12Bulan),
           unit: 'cm',
+          datasebelum: data.tbSebelumnya,
+          title2: 'Tinggi Lahir',
+          status2: data.kategoriL,
+          beratLahir: data.tbl,
+          unit2: 'cm',
         ),
       ],
     );
