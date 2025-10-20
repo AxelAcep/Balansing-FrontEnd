@@ -16,6 +16,9 @@ class AnakKader {
   bool? tampakPucat;
   bool? riwayatAnemia;
 
+  double? bbLahir; // Berat Badan Saat Lahir
+  double? tbLahir; // Tinggi Badan Saat Lahir
+
   AnakKader({
     this.email, // Inisialisasi email
     this.tanggalPemeriksaan,
@@ -32,6 +35,8 @@ class AnakKader {
     this.tampakPucat,
     this.riwayatAnemia,
     this.id,
+    this.bbLahir,
+    this.tbLahir,
   });
 
   void reset() {
@@ -49,6 +54,8 @@ class AnakKader {
     tampakLemas = null;
     tampakPucat = null;
     riwayatAnemia = null;
+    this.bbLahir = null;
+    this.tbLahir = null;
     this.id = null; // Reset id
   }
 
@@ -69,6 +76,8 @@ class AnakKader {
       'tampakPucat': tampakPucat,
       'riwayatAnemia': riwayatAnemia,
       'id': id, // Sertakan id dalam JSON
+      'bbLahir': bbLahir,
+      'tbLahir': tbLahir,
     };
   }
 
@@ -91,6 +100,8 @@ class AnakKader {
       tampakPucat: json['tampakPucat'],
       riwayatAnemia: json['riwayatAnemia'],
       id: json['id'], // Ambil id dari JSON
+      bbLahir: json['bbLahir']?.toDouble(),
+      tbLahir: json['tbLahir']?.toDouble(),
     );
   }
 }

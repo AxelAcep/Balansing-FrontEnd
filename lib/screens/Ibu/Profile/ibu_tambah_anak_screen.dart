@@ -24,6 +24,8 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
   final TextEditingController _bulanController = TextEditingController();
   final TextEditingController _bbController = TextEditingController();
   final TextEditingController _tbController = TextEditingController();
+  final TextEditingController _bblController = TextEditingController();
+  final TextEditingController _tblController = TextEditingController();
 
   // _selectedDate dan _selectedGender akan diinisialisasi dari _anakKader di initState
   DateTime? _selectedDate;
@@ -39,6 +41,8 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
     _bulanController.text = _anakKader.umurBulan?.toString() ?? '';
     _bbController.text = _anakKader.beratBadan?.toString() ?? '';
     _tbController.text = _anakKader.tinggiBadan?.toString() ?? '';
+    _bblController.text = _anakKader.bbLahir?.toString() ?? '';
+    _tblController.text = _anakKader.tbLahir?.toString() ?? '';
     _selectedGender = _anakKader.jenisKelamin;
 
     _hitungDanIsiUmur();
@@ -56,6 +60,8 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
     "jenisKelamin": _selectedGender,
     "beratBadan": double.tryParse(_bbController.text) ?? 0.0,
     "tinggiBadan": double.tryParse(_tbController.text) ?? 0.0,
+    "bbLahir": double.tryParse(_bblController.text) ?? 0.0,
+    "tbLahir": double.tryParse(_tblController.text) ?? 0.0
     // Tambahkan data lain sesuai kebutuhan backend, misalnya 'kaderId'
     // "kaderId": User.instance.kaderId,
   };
@@ -110,6 +116,8 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
     _bulanController.clear();
     _bbController.clear();
     _tbController.clear();
+    _bblController.clear();
+    _tblController.clear();
     _selectedGender = null;
 
     _anakKader.reset();
@@ -123,6 +131,8 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
     _bulanController.dispose();
     _bbController.dispose();
     _tbController.dispose();
+    _bblController.dispose();
+    _tblController.dispose();
     super.dispose();
   }
 
@@ -203,6 +213,8 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
       _bulanController.text.isNotEmpty &&
       _bbController.text.isNotEmpty &&
       _tbController.text.isNotEmpty &&
+      _bblController.text.isNotEmpty &&
+      _tblController.text.isNotEmpty &&
       _selectedDate != null &&
       _selectedGender != null;
 
@@ -579,6 +591,93 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
                             Expanded(
                               child: TextField(
                                 controller: _tbController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: "(cm)",
+                                  hintStyle: GoogleFonts.poppins(
+                                    color: const Color(0xFFA1A1AA),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                  ),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: height* 0.02,),
+                        Text(
+                          "BB/TB (Saat Lahir)",
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontSize: width * 0.04,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: height * 0.015),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "BB",
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize: width * 0.035,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: width * 0.02),
+                            Expanded(
+                              child: TextField(
+                                controller: _bblController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: "(gram)",
+                                  hintStyle: GoogleFonts.poppins(
+                                    color: const Color(0xFFA1A1AA),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                  ),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: width * 0.04),
+                            Text(
+                              "TB",
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize: width * 0.035,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: width * 0.02),
+                            Expanded(
+                              child: TextField(
+                                controller: _tblController,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   hintText: "(cm)",

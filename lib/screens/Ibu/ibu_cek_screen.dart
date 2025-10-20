@@ -170,12 +170,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                 ),
               ),
               SizedBox(height: height * 0.02),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: height * 0.4,
-                  maxHeight: height * 0.4,
-                ),
-                child: Container(
+              Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -228,9 +223,8 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                         ),
                       );
                     },
-                  ),
-                ),
-              ),
+                  ),),
+
               
               SizedBox(height: height * 0.02),
 
@@ -401,7 +395,8 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                     ),
                   ),
                 ],
-              )
+              ),
+              SizedBox(height: height*0.04,)
             ],
           ),
         ),

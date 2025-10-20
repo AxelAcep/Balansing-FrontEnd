@@ -27,6 +27,25 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
   bool? _tampakPucat;         // true = Ya, false = Tidak
   bool? _riwayatAnemia;       // true = Ya, false = Tidak
 
+  bool _isContohVisible = false;
+  bool _isContohVisibleII = false;
+
+  // Warna yang ditentukan
+  final Color _colorLihat = const Color(0xFF76A73B); // Hijau
+  final Color _colorSembunyikan = const Color(0xFFF87171); // Merah
+
+  void _toggleContohVisibility() {
+    setState(() {
+      _isContohVisible = !_isContohVisible;
+    });
+  }
+
+    void _toggleContohVisibilityII() {
+    setState(() {
+      _isContohVisibleII = !_isContohVisibleII;
+    });
+  }
+
   final TextEditingController _bbController = TextEditingController();
   final TextEditingController _tbController = TextEditingController();
 
@@ -595,6 +614,55 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                             width: width,
                             height: height,
                           ),
+
+                          SizedBox(height: height * 0.02),
+
+                          TextButton(
+                            onPressed: _toggleContohVisibility,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero, // Hapus padding default
+                              minimumSize: Size.zero,   // Minimum size nol
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Area tap lebih kecil
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min, // Agar Row hanya mengambil ruang yang dibutuhkan
+                              children: [
+                                Text(
+                                  // Mengubah teks berdasarkan status
+                                  _isContohVisible ? 'Sembunyikan Contoh' : 'Lihat Contoh',
+                                  style: TextStyle(
+                                    // Mengubah warna teks berdasarkan status
+                                    color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4), // Jarak antara teks dan ikon
+                                Icon(
+                                  // Mengubah ikon berdasarkan status
+                                  _isContohVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                  // Mengubah warna ikon berdasarkan status
+                                  color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          if(_isContohVisible)
+                            SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                              child: Row(
+                              children: [
+                                Container(
+                                  height: height * 0.2,
+                                  child: Image.asset('assets/images/konjungtivaI.png'),
+                                ),
+                                SizedBox(width: width * 0.05),
+                                Container(
+                                  height: height * 0.2,
+                                  child: Image.asset('assets/images/konjungtivaII.jpg'),
+                                ),
+                               ])),
+
                           SizedBox(height: height * 0.02),
 
                           // Kuku Bersih Section
@@ -614,6 +682,54 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                             width: width,
                             height: height,
                           ),
+                          SizedBox(height: height * 0.02),
+
+                          TextButton(
+                            onPressed: _toggleContohVisibilityII,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero, // Hapus padding default
+                              minimumSize: Size.zero,   // Minimum size nol
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Area tap lebih kecil
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min, // Agar Row hanya mengambil ruang yang dibutuhkan
+                              children: [
+                                Text(
+                                  // Mengubah teks berdasarkan status
+                                  _isContohVisible ? 'Sembunyikan Contoh' : 'Lihat Contoh',
+                                  style: TextStyle(
+                                    // Mengubah warna teks berdasarkan status
+                                    color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(width: 4), // Jarak antara teks dan ikon
+                                Icon(
+                                  // Mengubah ikon berdasarkan status
+                                  _isContohVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                  // Mengubah warna ikon berdasarkan status
+                                  color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          if(_isContohVisibleII)
+                            SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                              child: Row(
+                              children: [
+                                Container(
+                                  height: height * 0.2,
+                                  child: Image.asset('assets/images/kukuI.png'),
+                                ),
+                                SizedBox(width: width * 0.05),
+                                Container(
+                                  height: height * 0.2,
+                                  child: Image.asset('assets/images/kukunew.png'),
+                                ),
+                               ])),
+
                           SizedBox(height: height * 0.02),
 
                           // Tampak Lemas Section
@@ -703,7 +819,7 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: height * 0.03),
+                      SizedBox(height: height * 0.06),
           ],
         ),
       ),

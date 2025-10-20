@@ -26,6 +26,8 @@ class _IbuEditAnakScreenState extends State<IbuEditAnakScreen> {
   final TextEditingController _bulanController = TextEditingController();
   final TextEditingController _bbController = TextEditingController();
   final TextEditingController _tbController = TextEditingController();
+  final TextEditingController _bblController = TextEditingController();
+  final TextEditingController _tblController = TextEditingController();
 
   // _selectedDate dan _selectedGender akan diinisialisasi dari _anakKader di initState
   DateTime? _selectedDate;
@@ -49,6 +51,8 @@ class _IbuEditAnakScreenState extends State<IbuEditAnakScreen> {
       _namaAnakController.text = anakData['nama'] ?? '';
       _bbController.text = anakData['beratBadan']?.toString() ?? '';
       _tbController.text = anakData['tinggiBadan']?.toString() ?? '';
+      _bblController.text = anakData['beratBadanL']?.toString() ?? '';
+      _tblController.text = anakData['tinggiBadanL']?.toString() ?? '';
       _selectedGender = anakData['jenisKelamin'] ?? '';
       _hitungDanIsiUmur();
     });
@@ -85,6 +89,8 @@ Future<void> _DeleteAnak(String id) async{
     "jenisKelamin": _selectedGender,
     "beratBadan": double.tryParse(_bbController.text) ?? 0.0,
     "tinggiBadan": double.tryParse(_tbController.text) ?? 0.0,
+    "beratBadanL": double.tryParse(_bblController.text) ?? 0.0,
+    "tinggiBadanL": double.tryParse(_tblController.text) ?? 0.0,
     // Tambahkan data lain sesuai kebutuhan backend, misalnya 'kaderId'
     // "kaderId": User.instance.kaderId,
   };
@@ -139,6 +145,8 @@ Future<void> _DeleteAnak(String id) async{
     _bulanController.clear();
     _bbController.clear();
     _tbController.clear();
+    _tblController.clear();
+    _bblController.clear();
     _selectedGender = null;
 
     _anakKader.reset();
@@ -152,6 +160,8 @@ Future<void> _DeleteAnak(String id) async{
     _bulanController.dispose();
     _bbController.dispose();
     _tbController.dispose();
+    _tblController.dispose();
+    _bblController.dispose();
     super.dispose();
   }
 
@@ -232,6 +242,8 @@ Future<void> _DeleteAnak(String id) async{
       _bulanController.text.isNotEmpty &&
       _bbController.text.isNotEmpty &&
       _tbController.text.isNotEmpty &&
+      _bblController.text.isNotEmpty &&
+      _tblController.text.isNotEmpty &&
       _selectedDate != null &&
       _selectedGender != null;
 
@@ -568,6 +580,93 @@ Future<void> _DeleteAnak(String id) async{
                             Expanded(
                               child: TextField(
                                 controller: _tbController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: "(cm)",
+                                  hintStyle: GoogleFonts.poppins(
+                                    color: const Color(0xFFA1A1AA),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                  ),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: height * 0.02),
+                        Text(
+                          "BB/TB (Saat Lahir)",
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontSize: width * 0.04,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: height * 0.015),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "BB",
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize: width * 0.035,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: width * 0.02),
+                            Expanded(
+                              child: TextField(
+                                controller: _bblController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  hintText: "(gram)",
+                                  hintStyle: GoogleFonts.poppins(
+                                    color: const Color(0xFFA1A1AA),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                  ),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: width * 0.04),
+                            Text(
+                              "TB",
+                              style: GoogleFonts.poppins(
+                                color: Colors.black,
+                                fontSize: width * 0.035,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            SizedBox(width: width * 0.02),
+                            Expanded(
+                              child: TextField(
+                                controller: _tblController,
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   hintText: "(cm)",

@@ -135,15 +135,15 @@ class GrowthChartCard extends StatelessWidget {
     late String standar;
     if(title2 == 'Berat Lahir'){
       if(beratLahir >= 2500){
-        standar = 'Di atas ${beratLahir-2500} gram';
+        standar = 'Di atas ${beratLahir-2500}';
       } else {
-        standar = 'Di bawah ${2500 - beratLahir} gram';
+        standar = 'Di bawah ${2500 - beratLahir}';
       }
     } else if (title2 == 'Tinggi Lahir'){
       if(beratLahir >= 45){
-        standar = 'Di atas ${beratLahir-45} cm';
+        standar = 'Di atas ${beratLahir-45}';
       } else {
-        standar = 'Di bawah ${45-beratLahir} cm';
+        standar = 'Di bawah ${45-beratLahir}';
       }
     }
 
@@ -409,7 +409,7 @@ class GrowthChartCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${standar} $unit',
+                    '${standar} $unit2',
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.03,
                       color: Colors.grey,
