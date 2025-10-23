@@ -19,5 +19,5 @@ samples, guidance on mobile development, and a full API reference.
 
 | Name | GitHub Profile |
 |------|----------------|
-| John Doe | [Mohammad Fatih](https://github.com/MohammadFatih) |
-| Jane Smith | [Huda Rasyad Wicaksono](https://github.com/Masuden0000) |
+| Mohammad Fatih | [MohammadFatih](https://github.com/MohammadFatih) |
+| Huda Rasyad Wicaksono | [Masuden0000](https://github.com/Masuden0000) |
