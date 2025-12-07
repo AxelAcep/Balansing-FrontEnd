@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/card/CekAnakCard.dart';
 import 'package:balansing/services/ibu_services.dart';
-
+import 'package:provider/provider.dart';
+import 'package:balansing/providers/IbuProvider.dart';
+import 'package:balansing/models/user_model.dart';
 
 class IbuCekIScreen extends StatefulWidget {
   final String id;
@@ -18,7 +20,7 @@ class IbuCekIScreen extends StatefulWidget {
 class _IbuCekIScreenState extends State<IbuCekIScreen> {
   // State untuk menyimpan data anak dan status loading
   Map<String, dynamic>? _childData;
-  bool _isLoading = true;
+  bool _isLoading = false;
   String? _errorMessage;
   DateTime? _selectedDate;
   bool? _konjungtivitaNormal; // true = Merah Segar, false = Pucat
@@ -29,6 +31,7 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
 
   bool _isContohVisible = false;
   bool _isContohVisibleII = false;
+  
 
   // Warna yang ditentukan
   final Color _colorLihat = const Color(0xFF76A73B); // Hijau
@@ -128,55 +131,69 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
     return totalMonths;
   }
 
-    void postRecapData() async {
-    final Map<String, dynamic> dataAnak = {
-      "anakId": widget.id,
-      "tanggal": _selectedDate?.toUtc().toIso8601String(),
-      "usia": _calculateMonth(DateTime.parse(_childData!['usia'])),
-      "beratBadan": double.tryParse(_bbController.text) ?? 0.0,
-      "tinggiBadan": double.tryParse(_tbController.text) ?? 0.0,
-      "jenisKelamin": _childData?['jenisKelamin'],
-      "konjungtivitaNormal": _konjungtivitaNormal,
-      "kukuBersih": _kukuBersih,
-      "tampakLemas": _tampakLemas,
-      "tampakPucat": _tampakPucat,
-      "riwayatAnemia": _riwayatAnemia,
-    };
-
-    print("Data yang akan dikirim: $dataAnak");
-
-    _showSnackbar("Sedang memproses data...", const Color(0xFF64748B), Colors.white);
-
-    try {
-      final response = await IbuServices().postRecapAnak(dataAnak);
-      print("Data berhasil dikirim: $response");
-      _showSnackbar("Data berhasil dikirim!", const Color(0xFF9FC86A), Colors.white);
-
-      print("Navigasi ke halaman hasil dengan data: $response");
-      print({response['anakIbu']['anakIbuId']});
-      
-      final response2 = await IbuServices().generateRekomendasi(response['anakIbu']['kodeRecap']);
-      print("Data berhasil dikirim: $response2");
-
-
-      Navigator.pop(context, true); 
-      await Navigator.push( // Await the push so you can refresh
-          context,
-          MaterialPageRoute(
-            builder: (context) => IbuCekIIScreen(id: response['anakIbu']['kodeRecap'], idAnak: widget.id),
-          ),
-        );
-
-      // // Navigasi ke halaman hasil setelah data berhasil dikirim
-      // Navigator.pushNamed(context, '/ibu/cek/hasil', arguments: {
-      //   'anakId': widget.id,
-      //   'recapData': response,
-      // });
-    } catch (e) {
-      print("Gagal mengirim data: $e");
-      _showSnackbar("Gagal mengirim data: $e", Colors.red, Colors.white);
+  void _setLoading(bool loading) {
+    if (mounted) {
+      setState(() {
+        _isLoading = loading;
+      });
     }
   }
+
+ Future<void> _submitRecapData(BuildContext context) async {
+  _setLoading(true);
+  final ibuProvider = Provider.of<RecapIbuProvider>(context, listen: false);
+  final emailUser = User.instance.email;
+
+  if (ibuProvider.isSubmitting) return;
+
+  final Map<String, dynamic> dataAnak = {
+    "anakId": widget.id,
+    "tanggal": _selectedDate?.toUtc().toIso8601String(),
+    "usia": _calculateMonth(DateTime.parse(_childData!['usia'])),
+    "beratBadan": double.tryParse(_bbController.text) ?? 0.0,
+    "tinggiBadan": double.tryParse(_tbController.text) ?? 0.0,
+    "jenisKelamin": _childData?['jenisKelamin'],
+    "konjungtivitaNormal": _konjungtivitaNormal,
+    "kukuBersih": _kukuBersih,
+    "tampakLemas": _tampakLemas,
+    "tampakPucat": _tampakPucat,
+    "riwayatAnemia": _riwayatAnemia,
+    "email": emailUser,
+  };
+
+  print("Data yang akan dikirim: $dataAnak");
+
+  _showSnackbar("Sedang memproses data...", const Color(0xFF64748B), Colors.white);
+
+  try {
+    final response = await ibuProvider.postRecapData(dataAnak: dataAnak);
+
+    _showSnackbar("Data berhasil dikirim!", const Color(0xFF9FC86A), Colors.white);
+    
+    if (mounted) {
+      // Just navigate - no need to refresh here
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IbuCekIIScreen(
+            id: response['anakIbu']['kodeRecap'], 
+            idAnak: widget.id
+          ),
+        ),
+      );
+      
+      // After returning from IbuCekIIScreen, pop back to dashboard
+      // The 'true' signals that data was changed
+      Navigator.pop(context, true);
+    }
+  } catch (e) {
+    if (mounted) {
+      _showSnackbar("Gagal mengirim data: ${e.toString()}", Colors.red, Colors.white);
+    }
+  } finally {
+    _setLoading(false);
+  }
+}
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -311,282 +328,178 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
         : 'Memuat...';
     final String gender = _childData?['jenisKelamin'] ?? 'Memuat...';
 
-    return Scaffold(
-      body: SingleChildScrollView(
-      child: Container(
-        color: Colors.white,
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: height * 0.05),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Back Button
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context, true);
+    return PopScope( 
+      canPop: !_isLoading,
+      child: Scaffold(
+      body: Stack( children: [ 
+      SingleChildScrollView(
+        child: Container(
+          color: Colors.white,
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: height * 0.05),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Back Button
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context, true);
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            alignment: Alignment.centerLeft,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: height * 0.035,
+                                height: height * 0.035,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                    width: 1.0,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.arrow_back,
+                                  color: Color(0xFF020617),
+                                  size: 20.0,
+                                ),
+                              ),
+                              const SizedBox(width: 8.0),
+                              Text(
+                                "Kembali",
+                                style: GoogleFonts.poppins(
+                                  color: const Color(0xFF020617),
+                                  fontSize: width * 0.04,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                        onTap: () async {
+                          print("Tutorial button tapped");
+                          await Navigator.push( // Await the push so you can refresh
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const TutorialFlowScreen(),
+                            ),
+                          );
                         },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          alignment: Alignment.centerLeft,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: height * 0.035,
-                              height: height * 0.035,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: const Color(0xFFE2E8F0),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back,
-                                color: Color(0xFF020617),
-                                size: 20.0,
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            Text(
-                              "Kembali",
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFF020617),
-                                fontSize: width * 0.04,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: Text("Tutorial",
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF76A73B),
+                              fontSize: width * 0.04,
+                              fontWeight: FontWeight.w400,
+                              decoration: TextDecoration.underline,
+                            )),
                       ),
-                    ],
-                  ),
-                  GestureDetector(
-                      onTap: () async {
-                        print("Tutorial button tapped");
-                        await Navigator.push( // Await the push so you can refresh
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const TutorialFlowScreen(),
-                          ),
-                        );
-                      },
-                      child: Text("Tutorial",
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF76A73B),
-                            fontSize: width * 0.04,
-                            fontWeight: FontWeight.w400,
-                            decoration: TextDecoration.underline,
-                          )),
-                    ),
-              ],
-            ),
-            SizedBox(height: height * 0.025),
-            Text(
-              "Masukan Data Kesehatan Anak",
-              style: GoogleFonts.poppins(
-                color: const Color.fromARGB(255, 0, 1, 3),
-                fontSize: width * 0.05,
-                fontWeight: FontWeight.w600,
+                ],
               ),
-            ),
-            Text("Yuk, lengkapi data kesehatan si kecil agar kami bisa bantu cek apakah ia berisiko stunting atau anemia.",
+              SizedBox(height: height * 0.025),
+              Text(
+                "Masukan Data Kesehatan Anak",
                 style: GoogleFonts.poppins(
-                  color: const Color(0xFF64748B),
-                  fontSize: width * 0.03,
-                  fontWeight: FontWeight.w400,
-                )),
-            SizedBox(height: height * 0.02),
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (_errorMessage != null)
-              Center(child: Text(_errorMessage!))
-            else if (_childData != null)
-              ProfileCard(
-                name: name,
-                birthDate: birthDate,
-                age: age,
-                gender: gender,
-                checkable: true,
-              )
-            else
-              const Center(child: Text("Tidak ada data anak yang ditemukan.")),
-          
-            SizedBox(height: height * 0.02),
+                  color: const Color.fromARGB(255, 0, 1, 3),
+                  fontSize: width * 0.05,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text("Yuk, lengkapi data kesehatan si kecil agar kami bisa bantu cek apakah ia berisiko stunting atau anemia.",
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF64748B),
+                    fontSize: width * 0.03,
+                    fontWeight: FontWeight.w400,
+                  )),
+              SizedBox(height: height * 0.02),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (_errorMessage != null)
+                Center(child: Text(_errorMessage!))
+              else if (_childData != null)
+                ProfileCard(
+                  name: name,
+                  birthDate: birthDate,
+                  age: age,
+                  gender: gender,
+                  checkable: true,
+                )
+              else
+                const Center(child: Text("Tidak ada data anak yang ditemukan.")),
+            
+              SizedBox(height: height * 0.02),
 
-            Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Tanggal Pemeriksaan",
-                          style: GoogleFonts.poppins(
-                              fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
-                        ),
-                        const SizedBox(height: 8.0),
-                        InkWell(
-                          onTap: () => _selectDate(context),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.calendar_month, size: height * 0.02, color: const Color.fromARGB(255, 148, 152, 158),),
-                                SizedBox(width: width * 0.02,),
-                                Text(
-                                  _selectedDate == null
-                                      ? "Pilih Tanggal"
-                                      : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: width * 0.035,
-                                    fontWeight: FontWeight.w400,
-                                    color: _selectedDate == null ? const Color.fromARGB(255, 148, 152, 158) : const Color.fromARGB(255, 148, 152, 158),
+              Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Tanggal Pemeriksaan",
+                            style: GoogleFonts.poppins(
+                                fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+                          ),
+                          const SizedBox(height: 8.0),
+                          InkWell(
+                            onTap: () => _selectDate(context),
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.calendar_month, size: height * 0.02, color: const Color.fromARGB(255, 148, 152, 158),),
+                                  SizedBox(width: width * 0.02,),
+                                  Text(
+                                    _selectedDate == null
+                                        ? "Pilih Tanggal"
+                                        : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: width * 0.035,
+                                      fontWeight: FontWeight.w400,
+                                      color: _selectedDate == null ? const Color.fromARGB(255, 148, 152, 158) : const Color.fromARGB(255, 148, 152, 158),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: height * 0.015),
-                  Text(" Identitas", style: GoogleFonts.poppins(
-                      fontSize: width * 0.04,
-                      fontWeight: FontWeight.w600
-                  ),),
-                  SizedBox(height: height * 0.015),
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "BB/TB",
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: width * 0.04,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: height * 0.015),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              "BB",
-                              style: GoogleFonts.poppins(
-                                color: Colors.black,
-                                fontSize: width * 0.035,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(width: width * 0.02),
-                            Expanded(
-                              child: TextField(
-                                controller: _bbController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  hintText: "(kg)",
-                                  hintStyle: GoogleFonts.poppins(
-                                    color: const Color(0xFFA1A1AA),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
-                                  ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: width * 0.04),
-                            Text(
-                              "TB",
-                              style: GoogleFonts.poppins(
-                                color: Colors.black,
-                                fontSize: width * 0.035,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(width: width * 0.02),
-                            Expanded(
-                              child: TextField(
-                                controller: _tbController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  hintText: "(cm)",
-                                  hintStyle: GoogleFonts.poppins(
-                                    color: const Color(0xFFA1A1AA),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
-                                  ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: height * 0.015),
-                  Text(" Gejala", style: GoogleFonts.poppins(
-                      fontSize: width * 0.04,
-                      fontWeight: FontWeight.w600
-                  ),),
-                  SizedBox(height: height * 0.015),
-
-                  Container(
+                    SizedBox(height: height * 0.015),
+                    Text(" Identitas", style: GoogleFonts.poppins(
+                        fontSize: width * 0.04,
+                        fontWeight: FontWeight.w600
+                    ),),
+                    SizedBox(height: height * 0.015),
+                    Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
                         border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
@@ -597,232 +510,373 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Konjungtivita Normal Section
-                          _buildRadioRow(
-                            title: "Konjungtiva",
-                            question: "Saat kelopak mata bawah anak ditarik perlahan, apakah warnanya merah segar?",
-                            valueForYes: false,
-                            labelForYes: "Merah Segar",
-                            valueForNo: true,
-                            labelForNo: "Pucat",
-                            groupValue: _konjungtivitaNormal,
-                            onChanged: (value) {
-                              setState(() {
-                                _konjungtivitaNormal = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-
-                          SizedBox(height: height * 0.02),
-
-                          TextButton(
-                            onPressed: _toggleContohVisibility,
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero, // Hapus padding default
-                              minimumSize: Size.zero,   // Minimum size nol
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Area tap lebih kecil
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min, // Agar Row hanya mengambil ruang yang dibutuhkan
-                              children: [
-                                Text(
-                                  // Mengubah teks berdasarkan status
-                                  _isContohVisible ? 'Sembunyikan Contoh' : 'Lihat Contoh',
-                                  style: TextStyle(
-                                    // Mengubah warna teks berdasarkan status
-                                    color: _isContohVisible ? _colorSembunyikan : _colorLihat,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4), // Jarak antara teks dan ikon
-                                Icon(
-                                  // Mengubah ikon berdasarkan status
-                                  _isContohVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                                  // Mengubah warna ikon berdasarkan status
-                                  color: _isContohVisible ? _colorSembunyikan : _colorLihat,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if(_isContohVisible)
-                            SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                              child: Row(
-                              children: [
-                                SizedBox(
-                                  height: height * 0.2,
-                                  child: Image.asset('assets/images/konjungtivaI.png'),
-                                ),
-                                SizedBox(width: width * 0.05),
-                                SizedBox(
-                                  height: height * 0.2,
-                                  child: Image.asset('assets/images/konjungtivaII.jpg'),
-                                ),
-                               ])),
-
-                          SizedBox(height: height * 0.02),
-
-                          // Kuku Bersih Section
-                          _buildRadioRow(
-                            title: "Kuku",
-                            question: "Apakah kuku anak bersih dan tidak rapuh?",
-                            valueForYes: false,
-                            labelForYes: "Ya, bersih",
-                            valueForNo: true,
-                            labelForNo: "Rapuh/Pucat",
-                            groupValue: _kukuBersih,
-                            onChanged: (value) {
-                              setState(() {
-                                _kukuBersih = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          TextButton(
-                            onPressed: _toggleContohVisibilityII,
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero, // Hapus padding default
-                              minimumSize: Size.zero,   // Minimum size nol
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Area tap lebih kecil
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min, // Agar Row hanya mengambil ruang yang dibutuhkan
-                              children: [
-                                Text(
-                                  // Mengubah teks berdasarkan status
-                                  _isContohVisible ? 'Sembunyikan Contoh' : 'Lihat Contoh',
-                                  style: TextStyle(
-                                    // Mengubah warna teks berdasarkan status
-                                    color: _isContohVisible ? _colorSembunyikan : _colorLihat,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4), // Jarak antara teks dan ikon
-                                Icon(
-                                  // Mengubah ikon berdasarkan status
-                                  _isContohVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
-                                  // Mengubah warna ikon berdasarkan status
-                                  color: _isContohVisible ? _colorSembunyikan : _colorLihat,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if(_isContohVisibleII)
-                            SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                              child: Row(
-                              children: [
-                                SizedBox(
-                                  height: height * 0.2,
-                                  child: Image.asset('assets/images/kukuI.png'),
-                                ),
-                                SizedBox(width: width * 0.05),
-                                SizedBox(
-                                  height: height * 0.2,
-                                  child: Image.asset('assets/images/kukunew.png'),
-                                ),
-                               ])),
-
-                          SizedBox(height: height * 0.02),
-
-                          // Tampak Lemas Section
-                          _buildRadioRow(
-                            title: "Lemas",
-                            question: "Anak terlihat Lemas?",
-                            valueForYes: true,
-                            labelForYes: "Ya",
-                            valueForNo: false,
-                            labelForNo: "Tidak",
-                            groupValue: _tampakLemas,
-                            onChanged: (value) {
-                              setState(() {
-                                _tampakLemas = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          // Tampak Pucat Section
-                          _buildRadioRow(
-                            title: "Pucat",
-                            question: "Anak terlihat pucat?",
-                            valueForYes: true,
-                            labelForYes: "Ya",
-                            valueForNo: false,
-                            labelForNo: "Tidak",
-                            groupValue: _tampakPucat,
-                            onChanged: (value) {
-                              setState(() {
-                                _tampakPucat = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          // Riwayat Anemia Section
-                          _buildRadioRow(
-                            title: "Riwayat Anemia",
-                            question: "Apakah anak memiliki riwayat anemia?",
-                            valueForYes: true,
-                            labelForYes: "Ya",
-                            valueForNo: false,
-                            labelForNo: "Tidak",
-                            groupValue: _riwayatAnemia,
-                            onChanged: (value) {
-                              setState(() {
-                                _riwayatAnemia = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.01),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: height * 0.02),
-                    SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: ButtonActive
-                              ? () async {
-                                  print("Tombol Selanjutnya ditekan!");
-                                  postRecapData();
-                                }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            "Selanjutnya",
+                          Text(
+                            "BB/TB",
                             style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: width * 0.035,
+                              color: Colors.black,
+                              fontSize: width * 0.04,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
+                          SizedBox(height: height * 0.015),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "BB",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: width * 0.035,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: width * 0.02),
+                              Expanded(
+                                child: TextField(
+                                  controller: _bbController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: "(kg)",
+                                    hintStyle: GoogleFonts.poppins(
+                                      color: const Color(0xFFA1A1AA),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                    ),
+                                    contentPadding:
+                                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: width * 0.04),
+                              Text(
+                                "TB",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: width * 0.035,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: width * 0.02),
+                              Expanded(
+                                child: TextField(
+                                  controller: _tbController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: InputDecoration(
+                                    hintText: "(cm)",
+                                    hintStyle: GoogleFonts.poppins(
+                                      color: const Color(0xFFA1A1AA),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8.0),
+                                      borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                    ),
+                                    contentPadding:
+                                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: height * 0.015),
+                    Text(" Gejala", style: GoogleFonts.poppins(
+                        fontSize: width * 0.04,
+                        fontWeight: FontWeight.w600
+                    ),),
+                    SizedBox(height: height * 0.015),
+
+                    Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Konjungtivita Normal Section
+                            _buildRadioRow(
+                              title: "Konjungtiva",
+                              question: "Saat kelopak mata bawah anak ditarik perlahan, apakah warnanya merah segar?",
+                              valueForYes: false,
+                              labelForYes: "Merah Segar",
+                              valueForNo: true,
+                              labelForNo: "Pucat",
+                              groupValue: _konjungtivitaNormal,
+                              onChanged: (value) {
+                                setState(() {
+                                  _konjungtivitaNormal = value;
+                                });
+                              },
+                              width: width,
+                              height: height,
+                            ),
+
+                            SizedBox(height: height * 0.02),
+
+                            TextButton(
+                              onPressed: _toggleContohVisibility,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero, // Hapus padding default
+                                minimumSize: Size.zero,   // Minimum size nol
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Area tap lebih kecil
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min, // Agar Row hanya mengambil ruang yang dibutuhkan
+                                children: [
+                                  Text(
+                                    // Mengubah teks berdasarkan status
+                                    _isContohVisible ? 'Sembunyikan Contoh' : 'Lihat Contoh',
+                                    style: TextStyle(
+                                      // Mengubah warna teks berdasarkan status
+                                      color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4), // Jarak antara teks dan ikon
+                                  Icon(
+                                    // Mengubah ikon berdasarkan status
+                                    _isContohVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                    // Mengubah warna ikon berdasarkan status
+                                    color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            if(_isContohVisible)
+                              SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                                child: Row(
+                                children: [
+                                  SizedBox(
+                                    height: height * 0.2,
+                                    child: Image.asset('assets/images/konjungtivaI.png'),
+                                  ),
+                                  SizedBox(width: width * 0.05),
+                                  SizedBox(
+                                    height: height * 0.2,
+                                    child: Image.asset('assets/images/konjungtivaII.jpg'),
+                                  ),
+                                ])),
+
+                            SizedBox(height: height * 0.02),
+
+                            // Kuku Bersih Section
+                            _buildRadioRow(
+                              title: "Kuku",
+                              question: "Apakah kuku anak bersih dan tidak rapuh?",
+                              valueForYes: false,
+                              labelForYes: "Ya, bersih",
+                              valueForNo: true,
+                              labelForNo: "Rapuh/Pucat",
+                              groupValue: _kukuBersih,
+                              onChanged: (value) {
+                                setState(() {
+                                  _kukuBersih = value;
+                                });
+                              },
+                              width: width,
+                              height: height,
+                            ),
+                            SizedBox(height: height * 0.02),
+
+                            TextButton(
+                              onPressed: _toggleContohVisibilityII,
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.zero, // Hapus padding default
+                                minimumSize: Size.zero,   // Minimum size nol
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Area tap lebih kecil
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min, // Agar Row hanya mengambil ruang yang dibutuhkan
+                                children: [
+                                  Text(
+                                    // Mengubah teks berdasarkan status
+                                    _isContohVisible ? 'Sembunyikan Contoh' : 'Lihat Contoh',
+                                    style: TextStyle(
+                                      // Mengubah warna teks berdasarkan status
+                                      color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4), // Jarak antara teks dan ikon
+                                  Icon(
+                                    // Mengubah ikon berdasarkan status
+                                    _isContohVisible ? Icons.arrow_drop_up : Icons.arrow_drop_down,
+                                    // Mengubah warna ikon berdasarkan status
+                                    color: _isContohVisible ? _colorSembunyikan : _colorLihat,
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            if(_isContohVisibleII)
+                              SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                                child: Row(
+                                children: [
+                                  SizedBox(
+                                    height: height * 0.2,
+                                    child: Image.asset('assets/images/kukuI.png'),
+                                  ),
+                                  SizedBox(width: width * 0.05),
+                                  SizedBox(
+                                    height: height * 0.2,
+                                    child: Image.asset('assets/images/kukunew.png'),
+                                  ),
+                                ])),
+
+                            SizedBox(height: height * 0.02),
+
+                            // Tampak Lemas Section
+                            _buildRadioRow(
+                              title: "Lemas",
+                              question: "Anak terlihat Lemas?",
+                              valueForYes: true,
+                              labelForYes: "Ya",
+                              valueForNo: false,
+                              labelForNo: "Tidak",
+                              groupValue: _tampakLemas,
+                              onChanged: (value) {
+                                setState(() {
+                                  _tampakLemas = value;
+                                });
+                              },
+                              width: width,
+                              height: height,
+                            ),
+                            SizedBox(height: height * 0.02),
+
+                            // Tampak Pucat Section
+                            _buildRadioRow(
+                              title: "Pucat",
+                              question: "Anak terlihat pucat?",
+                              valueForYes: true,
+                              labelForYes: "Ya",
+                              valueForNo: false,
+                              labelForNo: "Tidak",
+                              groupValue: _tampakPucat,
+                              onChanged: (value) {
+                                setState(() {
+                                  _tampakPucat = value;
+                                });
+                              },
+                              width: width,
+                              height: height,
+                            ),
+                            SizedBox(height: height * 0.02),
+
+                            // Riwayat Anemia Section
+                            _buildRadioRow(
+                              title: "Riwayat Anemia",
+                              question: "Apakah anak memiliki riwayat anemia?",
+                              valueForYes: true,
+                              labelForYes: "Ya",
+                              valueForNo: false,
+                              labelForNo: "Tidak",
+                              groupValue: _riwayatAnemia,
+                              onChanged: (value) {
+                                setState(() {
+                                  _riwayatAnemia = value;
+                                });
+                              },
+                              width: width,
+                              height: height,
+                            ),
+                            SizedBox(height: height * 0.01),
+                          ],
                         ),
                       ),
-                      SizedBox(height: height * 0.06),
-          ],
+                      SizedBox(height: height * 0.02),
+                      SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: ButtonActive
+                                ? () async {
+                                    print("Tombol Selanjutnya ditekan!");
+                                    _submitRecapData(context);
+                                  }
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              "Selanjutnya",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: width * 0.035,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: height * 0.06),
+            ],
+          ),
         ),
       ),
+      if (_isLoading)
+          Material(
+            color: Colors.black.withOpacity(0.3),
+            child: Center(
+              // Your provided loading container layout
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF9FC86A)),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "Mengunggah data...",
+                      style: GoogleFonts.poppins(
+                        fontSize: width * 0.04,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+    ],
+
+    )
     ));
   }
 }

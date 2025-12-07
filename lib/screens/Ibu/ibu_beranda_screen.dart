@@ -329,11 +329,11 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Text("Recap Data Anak Tidak Ditemukan! Mungkin si Kecil belum pernah melakukan pengecekan.", textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: width*0.04, fontWeight: FontWeight.w600)),
             SizedBox(height: height*0.02,),
-            Text(
-            provider.error!,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(color: Colors.red),
-          ),
+          //   Text(
+          //   provider.error!,
+          //   textAlign: TextAlign.center,
+          //   style: GoogleFonts.poppins(color: Colors.red),
+          // ),
           SizedBox(height: height*0.02,),
 
           GestureDetector(
@@ -561,6 +561,17 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
           beratLahir: data.bbl,
           unit2: 'gram',
         ),
+        SizedBox(height: height * 0.01),
+        GrowthIndicatorCard(
+        title: 'Tinggi Badan menurut Umur (WFA)',
+        value: '${data.tb.toStringAsFixed(2)} cm',
+        zScore: '${data.tb / (data.umur)}',
+        status: 'Tinggi badan normal',
+        imagePath: 'assets/images/RulerIcon.png',
+        width: width,
+        count: 1,
+      ),
+        SizedBox(height: height * 0.01),
         GrowthChartCard(
           title: 'Tinggi Badan',
           data: _mapToGrowthData(data.dataTB12Bulan),

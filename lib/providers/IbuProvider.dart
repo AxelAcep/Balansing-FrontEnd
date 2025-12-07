@@ -30,19 +30,7 @@ class RecapProvider with ChangeNotifier {
         int index = entry.key;
         Map<String, dynamic> data = entry.value as Map<String, dynamic>;
         
-        // Sesuaikan dengan data JSON Anda
-        // Karena JSON tidak memiliki 'namaAnak', 'tanggalLahir', atau 'jenisKelamin'
-        // Anda perlu mengambilnya dari tempat lain atau mengisinya dengan dummy
-        // Ini adalah asumsi jika Anda memiliki data ini di backend atau model
-        // Contoh: Ambil nama anak dari profil ibu atau anak
-        // Untuk contoh ini, kita asumsikan Anda akan mengambil nama, gender, dll. dari data lain
-        // atau mengisinya sebagai placeholder.
-        
-        // Contoh penyesuaian:
-        // Anda perlu mengambil data anak dari API lain
-        // atau menyimpan data anak di RecapAnak model Anda.
-        // Jika tidak, Anda bisa menggunakan data dummy seperti ini:
-        // Misalkan ada endpoint lain untuk mendapatkan data anak berdasarkan ID
+
         
         return ChildData(
           name: data['nama'],
@@ -167,6 +155,56 @@ class DashboardIbuProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+}
+
+class RecapIbuProvider with ChangeNotifier {
+  // 1. State untuk Loading
+  bool _isSubmitting = false;
+  
+  // 2. Getter untuk Loading State
+  bool get isSubmitting => _isSubmitting;
+
+  // Variabel untuk menyimpan hasil respons (Opsional, tapi baik untuk debugging/akses data)
+  Map<String, dynamic>? _recapResponse;
+  Map<String, dynamic>? get recapResponse => _recapResponse;
+
+  // --- Fungsi untuk Post Recap Data ---
+  Future<Map<String, dynamic>> postRecapData({
+    required Map<String, dynamic> dataAnak,
+  }) async {
+    // A. Mulai Loading
+    _isSubmitting = true;
+    notifyListeners(); // Memberi tahu Widget untuk menampilkan loading
+
+    try {
+      // 1. Panggil Service Pertama (Post Recap)
+      final response = await IbuServices().postRecapAnak(dataAnak);
+      
+      _recapResponse = response;
+      
+      print("Data berhasil dikirim: $response");
+
+      // 2. Panggil Service Kedua (Generate Rekomendasi)
+      final kodeRecap = response['anakIbu']['kodeRecap'];
+      final response2 = await IbuServices().generateRekomendasi(kodeRecap);
+      print("Data rekomendasi berhasil dikirim: $response2");
+
+      // 3. Setelah proses selesai, hentikan loading
+      _isSubmitting = false;
+      notifyListeners();
+      
+      // Kembalikan response pertama (atau kode recap yang dibutuhkan)
+      return response; 
+      
+    } catch (e) {
+      // 4. Handle Error dan Hentikan Loading
+      print("Gagal mengirim data di provider: $e");
+      _isSubmitting = false;
+      notifyListeners();
+      // Lemparkan error agar Widget bisa menangkapnya dan menampilkan Snackbar error
+      throw Exception(e.toString()); 
     }
   }
 }

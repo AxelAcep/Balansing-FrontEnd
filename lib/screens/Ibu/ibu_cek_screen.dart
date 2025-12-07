@@ -10,6 +10,7 @@ import 'package:balansing/providers/IbuProvider.dart';
 import 'package:balansing/models/user_model.dart';
 import 'package:balansing/screens/Ibu/Cek/ibu_riwayat_screen.dart';
 import 'package:balansing/screens/Ibu/Quiz/ibu_quiz_managerI_screen.dart';
+import 'package:balansing/services/ibu_services.dart';
 
 class IbuCekScreen extends StatefulWidget {
   const IbuCekScreen({super.key});
@@ -22,14 +23,83 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
   // Variabel state untuk melacak indeks card yang sedang terpilih
   int _selectedIndex = -1; // -1 berarti tidak ada yang terpilih
   bool cekDate = false;
-  bool quizDone = true;
+  bool quizDone = false;
+  String datenext = "";
+  String datebefore = "";
   final QuizScoreManager _scoreManager = QuizScoreManager();
+  final IbuServices _ibuServices = IbuServices();
+
+   Future<void> _fetchKaderProfile() async {
+    // Add a check to prevent fetching if email is already empty or data is already being fetched
+    if (User.instance.email.isEmpty) {
+      setState(() {
+        cekDate = false;
+        quizDone = false;
+        datenext = "";
+        datebefore = "";
+      });
+      print("DEBUG: User email is empty, cannot fetch kader profile.");
+      return;
+    }
+
+    // Set initial loading state
+    setState(() {
+      cekDate = false;
+      quizDone = false;
+      datenext = "";
+      datebefore = "";
+    });
+
+    try {
+      Map<String, dynamic> data = await _ibuServices.getIbu(User.instance.email);
+
+      setState(() {
+        cekDate = data['cekAnak'] ?? false;
+        quizDone = data['sanitasi'] ?? false;
+        datenext = data['jadwalResetBerikutnya'] ?? "";
+        datebefore = data['terakhirDijalankan'] ?? "";
+      });
+      print("Kader Profile Data: $data");
+    } catch (e) {
+      setState(() {
+        cekDate = false;
+        quizDone = false;
+        datenext = "";
+        datebefore = "";
+      });
+      print('Error fetching kader profile: $e');
+    }
+  }
+
+  String formatTanggal(String dateString) {
+    try {
+      // 1. Konversi String menjadi objek DateTime.
+      // Metode ini secara cerdas menangani format YYYY-MM-DD HH:MM:SS
+      // Meskipun tidak sepenuhnya standar ISO 8601, Dart dapat mem-parse-nya.
+      DateTime dateTime = DateTime.parse(dateString);
+      print(dateString);
+
+      // 2. Tentukan format output yang Anda inginkan: "d MMMM yyyy"
+      // Contoh: "8 Desember 2025"
+      final DateFormat formatter = DateFormat('d MMMM yyyy', 'id_ID');
+
+      // 3. Lakukan pemformatan
+      String formattedDate = formatter.format(dateTime);
+      
+      return formattedDate; // Output: "8 Desember 2025"
+      
+    } catch (e) {
+      print("Error memformat tanggal '$dateString': $e");
+      return "-";
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ProfileProvider>(context, listen: false).fetchDaftarAnak(User.instance.email);
+      _fetchKaderProfile();
     });
   }
 
@@ -76,7 +146,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
             children: [
               SizedBox(height: height * 0.08),
               // Peringatan akan ditampilkan jika belum ada anak yang dipilih
-              cekDate
+              !cekDate
                   ? Container(
                       width: double.infinity,
                       height: height * 0.08,
@@ -104,7 +174,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                             children: [
                               SizedBox(width: width * 0.07), // Untuk perataan
                               Text(
-                                "Pemeriksaan selanjutnya: 4 Juli 2025",
+                                "Pemeriksaan selanjutnya: ${formatTanggal(datenext)}",
                                 style: GoogleFonts.poppins(
                                   fontSize: width * 0.03,
                                   fontWeight: FontWeight.w400,
@@ -118,7 +188,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                     )
                   : SizedBox(height: height * 0.0),
               
-              cekDate
+              !cekDate
                   ? SizedBox(height: height * 0.02)
                   : SizedBox(height: height * 0.0),
 
@@ -135,12 +205,16 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                     ),
                   ),
                   ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async{
                       print("Tombol Riwayat ditekan!");
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => const IbuRiwayatScreen()),
                       );
+                      if (mounted) {
+                                      final String userId = User.instance.email;
+                                      Provider.of<ProfileProvider>(context, listen: false).fetchDaftarAnak(userId);
+                                    }
                     },
                     icon: const Icon(Icons.history),
                     label: Text(
@@ -203,11 +277,12 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 20.0),
                                 child: GestureDetector(
-                                  onTap: () {
+                                  onTap: anak['cekMingguan'] == true
+                                    ?() {
                                     setState(() {
                                       _selectedIndex = index;
                                     });
-                                  },
+                                  } : null,
                                   child: ProfileCard(
                                     name: anak['nama'],
                                     birthDate: DateFormat('d MMMM yyyy', 'id').format(DateTime.parse(anak['usia'])),
@@ -313,7 +388,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                               onTap: () {
                                 print("Lewati Quiz");
                                 setState(() {
-                                  //quizDone = false;
+                                  quizDone = false;
                                 });
                               },
                               child: Text("Ingatkan Kembali",
@@ -334,7 +409,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
               
               Consumer<ProfileProvider>(
                 builder: (context, profileProvider, child) {
-                  final bool isButtonActive = _selectedIndex != -1 && !cekDate;
+                  final bool isButtonActive = _selectedIndex != -1 && cekDate;
                   final String? selectedAnakId = getSelectedAnakId(profileProvider);
 
                   return Row(
@@ -354,6 +429,10 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                                         builder: (context) => IbuCekIScreen(id: selectedAnakId),
                                       ),
                                     );
+                                    if (mounted) {
+                                      final String userId = User.instance.email;
+                                      Provider.of<ProfileProvider>(context, listen: false).fetchDaftarAnak(userId);
+                                    }
                                   }
                                 }
                               : null,
@@ -387,7 +466,7 @@ class _IbuCekScreenState extends State<IbuCekScreen> {
                   Icon(Icons.calendar_month, size: width * 0.04, color: Colors.grey),
                   SizedBox(width: width * 0.02),
                   Text(
-                    "Pengecekan sebelumnya: 4 Juni 2025",
+                    "Pengecekan sebelumnya: ${formatTanggal(datebefore)}",
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.03,
                       fontWeight: FontWeight.w400,

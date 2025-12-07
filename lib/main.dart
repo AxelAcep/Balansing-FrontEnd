@@ -49,6 +49,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => RecapProvider()),
         ChangeNotifierProvider(create: (_) => DashboardIbuProvider()),
+        ChangeNotifierProvider(create: (_) => RecapIbuProvider()),
       ],
       child: const MyApp(),
     ),

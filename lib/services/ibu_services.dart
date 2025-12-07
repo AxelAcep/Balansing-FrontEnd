@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 //import 'package:balansing/models/kader_model.dart'; 
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // Import paket
 
+
 class IbuServices {
   final String _baseUrl = '${dotenv.env['API_USER_URL']}/api/ibu';
 
@@ -402,6 +403,7 @@ Future<Map<String, dynamic>> getDetailRecap(String id) async {
 
   Future<Map<String, dynamic>> generateSanitasi(List<Map<String, dynamic>> quizHistory) async {
     final url = Uri.parse('$_baseUrl/analisis-sanitasi');
+    final emailUser = User.instance.email;
     try {
       final response = await http.post(
         url,
@@ -411,6 +413,7 @@ Future<Map<String, dynamic>> getDetailRecap(String id) async {
         },
         body: jsonEncode({
           "quizResult": quizHistory, // <- ini penting!
+          "email": emailUser,
         }),
       );
 
