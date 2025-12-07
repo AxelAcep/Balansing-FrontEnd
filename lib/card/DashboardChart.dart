@@ -22,7 +22,7 @@ class GrowthChartCard extends StatelessWidget {
   final String unit2;
 
   const GrowthChartCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.data,
     required this.unit,
@@ -32,7 +32,7 @@ class GrowthChartCard extends StatelessWidget {
     required this.status2,
     required this.beratLahir,
     required this.unit2,
-  }) : super(key: key);
+  });
 
   String _getMonthLabel(int month) {
     switch (month) {
@@ -116,7 +116,7 @@ class GrowthChartCard extends StatelessWidget {
       children: [
         Text(TextJenis, style: GoogleFonts.poppins(fontSize: width*0.04, fontWeight: FontWeight.w600),),
         Text(
-          '$status2',
+          status2,
           style: GoogleFonts.poppins(
             fontSize: width * 0.04,
             fontWeight: FontWeight.w600,
@@ -153,12 +153,12 @@ class GrowthChartCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(width * 0.04),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.transparent,
             spreadRadius: 2,
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: Offset(0, 5),
           ),
         ],
       ),
@@ -211,7 +211,7 @@ class GrowthChartCard extends StatelessWidget {
                         return Padding(
                           padding: EdgeInsets.only(top: height * 0.01),
                           child: Text(
-                            "${month}",
+                            "$month",
                             style: GoogleFonts.poppins(
                               fontSize: width * 0.025,
                               color: Colors.grey,
@@ -275,7 +275,7 @@ class GrowthChartCard extends StatelessWidget {
             ],),
           ),
           SizedBox(height: height * 0.02),
-          Container(
+          SizedBox(
             height: height * 0.15,
             child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -338,7 +338,7 @@ class GrowthChartCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${datasebelum} $unit',
+                    '$datasebelum $unit',
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.04,
                       fontWeight: FontWeight.bold,
@@ -383,7 +383,7 @@ class GrowthChartCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '$title2',
+                    title2,
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.03,
                       color: Colors.grey,
@@ -409,7 +409,7 @@ class GrowthChartCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${standar} $unit2',
+                    '$standar $unit2',
                     style: GoogleFonts.poppins(
                       fontSize: width * 0.03,
                       color: Colors.grey,

@@ -54,9 +54,9 @@ class AnakKader {
     tampakLemas = null;
     tampakPucat = null;
     riwayatAnemia = null;
-    this.bbLahir = null;
-    this.tbLahir = null;
-    this.id = null; // Reset id
+    bbLahir = null;
+    tbLahir = null;
+    id = null; // Reset id
   }
 
   Map<String, dynamic> toJson() {
@@ -104,6 +104,10 @@ class AnakKader {
       tbLahir: json['tbLahir']?.toDouble(),
     );
   }
+
+  DateTime? get tanggalLahir => null;
+
+  set tanggalLahir(DateTime? tanggalLahir) {}
 }
 
 class AnakKaderDataManager {

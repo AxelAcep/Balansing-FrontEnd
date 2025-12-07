@@ -6,6 +6,7 @@ import 'package:balansing/models/user_model.dart';
 import 'package:balansing/screens/onboarding_screen.dart';
 import 'package:balansing/screens/Kader/Profile/kader_informasi_screen.dart';
 import 'package:balansing/screens/Kader/Profile/kader_password_screen.dart';
+import 'package:balansing/screens/AboutUsPage.dart';
 
 class ProfilScreen extends StatefulWidget {
   const ProfilScreen({super.key});
@@ -259,8 +260,14 @@ class _ProfilScreenState extends State<ProfilScreen> {
                   SizedBox(height: height * 0.01),
                   TextButton(
                     onPressed: () {
-                      print("Ubah email Page");
-                      // Implement navigation to change email screen
+                      print("Tentang Kami");
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AboutUsPage(), // Replace with actual
+                        ),
+                      );
+
                     },
                     style: TextButton.styleFrom(
                       minimumSize: Size(width * 0.9, height * 0.06),
@@ -274,7 +281,7 @@ class _ProfilScreenState extends State<ProfilScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Ubah email",
+                          "Tentang Kami",
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w400,
                             fontSize: height * 0.017,

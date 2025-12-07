@@ -68,7 +68,7 @@ class _KaderPasswordScreenState extends State<KaderPasswordScreen> {
 
       if (response['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Password berhasil diubah!')),
+          const SnackBar(content: Text('Password berhasil diubah!')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

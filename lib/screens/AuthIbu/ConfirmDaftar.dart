@@ -39,7 +39,7 @@ class _ConfirmdaftarState extends State<Confirmdaftar> {
     print("Animasi selesai!");
      Navigator.pushAndRemoveUntil(
   context,
-  MaterialPageRoute(builder: (context) => LoginScreenIbu()),
+  MaterialPageRoute(builder: (context) => const LoginScreenIbu()),
   (route) => route.isFirst
 );}
 
@@ -59,7 +59,7 @@ class _ConfirmdaftarState extends State<Confirmdaftar> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Container(
+              SizedBox(
                 width: width * 0.2,
                 height: width * 0.2,
                 child: Image.asset(

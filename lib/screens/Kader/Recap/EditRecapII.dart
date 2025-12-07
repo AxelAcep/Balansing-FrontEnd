@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:intl/intl.dart'; // Tidak diperlukan lagi untuk tanggal pemeriksaan di sini
+import 'package:provider/provider.dart';
 
+// Import model dan service
 import 'package:balansing/models/anakKader_model.dart';
 import 'package:balansing/models/user_model.dart';
 import 'package:balansing/services/kader_services.dart';
-import 'package:balansing/providers/KaderProvider.dart';
-import 'package:provider/provider.dart';
+import 'package:balansing/providers/KaderProvider.dart'; // Asumsi RiwayatProvider ada di sini
 import 'package:balansing/models/filter_model.dart';
+
+// ************************************************
+// REFACTORED CODE STARTS HERE
+// ************************************************
 
 class EditRecapII extends StatefulWidget {
   const EditRecapII({super.key});
@@ -17,141 +21,203 @@ class EditRecapII extends StatefulWidget {
 }
 
 class _EditRecapIIState extends State<EditRecapII> {
-  // Hanya variabel state untuk Radio Button (Boolean)
-  bool? _konjungtivitaNormal; // true = Merah Segar, false = Pucat
-  bool? _kukuBersih;          // true = Ya, false = Tidak
-  bool? _tampakLemas;         // true = Ya, false = Tidak
-  bool? _tampakPucat;         // true = Ya, false = Tidak
-  bool? _riwayatAnemia;       // true = Ya, false = Tidak
+  // 1. STATE UNTUK FORM (Gejala)
+  bool? _isKonjungtivitaPucat; // true = Pucat, false = Merah Segar
+  bool? _isKukuRapuh; // true = Rapuh/Pucat, false = Bersih
+  bool? _isTampakLemas; // true = Ya, false = Tidak
+  bool? _isTampakPucat; // true = Ya, false = Tidak
+  bool? _hasRiwayatAnemia; // true = Ya, false = Tidak
+
+  // 2. STATE UNTUK PROSES
+  bool _isLoading = false;
 
   final _formKey = GlobalKey<FormState>();
-  late FilterModel filterModel;
-
-  // Ambil instance dari AnakKaderDataManager
   final AnakKaderDataManager _anakKaderDataManager = AnakKaderDataManager();
+  late FilterModel _filterModel;
+
+  // Nama properti disesuaikan agar lebih eksplisit dengan arti nilai 'true'
+  // (e.g., konjungtivitaNormal: true -> Merah Segar/Normal. konjungtivitaNormal: false -> Pucat).
+  // Saya menggunakan penamaan yang mencerminkan nilai boolean di model.
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi filterModel di sini karena context sudah tersedia
-    filterModel = Provider.of<FilterModel>(context, listen: false);
-    _loadInitialGejalaData(); // Panggil fungsi untuk memuat data gejala awal
+    // Inisialisasi Provider di initState dengan listen: false
+    _filterModel = Provider.of<FilterModel>(context, listen: false);
+    _loadInitialGejalaData();
   }
 
-  // Fungsi baru untuk memuat data gejala dari DataManager
+  // Mengubah nama fungsi dan properti state agar lebih jelas (Merah Segar = !Pucat)
   void _loadInitialGejalaData() {
-    // Ambil data dari data manager (currentAnakKader dari singleton)
     final AnakKader anakKaderData = _anakKaderDataManager.getData();
-
-    // Mengisi variabel state untuk Radio Button (Boolean)
-    // Jika nilai dari model adalah null, maka variabel state akan tetap null,
-    // yang berarti tidak ada radio button yang terpilih secara default.
-    _konjungtivitaNormal = anakKaderData.konjungtivitaNormal;
-    _kukuBersih = anakKaderData.kukuBersih;
-    _tampakLemas = anakKaderData.tampakLemas;
-    _tampakPucat = anakKaderData.tampakPucat;
-    _riwayatAnemia = anakKaderData.riwayatAnemia;
+    
+    // Memuat data dari model ke state lokal form
+    _isKonjungtivitaPucat = anakKaderData.konjungtivitaNormal == null 
+        ? null 
+        : !anakKaderData.konjungtivitaNormal!;
+        
+    _isKukuRapuh = anakKaderData.kukuBersih == null 
+        ? null 
+        : !anakKaderData.kukuBersih!;
+        
+    _isTampakLemas = anakKaderData.tampakLemas;
+    _isTampakPucat = anakKaderData.tampakPucat;
+    _hasRiwayatAnemia = anakKaderData.riwayatAnemia;
   }
 
-  Future<void> _SubmitAnak() async{
-    final AnakKader anakKaderData = _anakKaderDataManager.getData();
-    // Kumpulkan data gejala dari form
-    AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
-    updatedAnakKader.email = User.instance.email; // Pastikan email diisi
-
-    try {
-      print(updatedAnakKader.toJson());
-      final response = await KaderServices().editAnakKader(updatedAnakKader.toJson());
-      print('Data anak berhasil disimpan: ${response}');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Data berhasil diubah!')),
-        );
-
-      anakKaderData.reset();
-      final riwayatProvider = Provider.of<RiwayatProvider>(context, listen: false);
-
-      if(!filterModel.filter){
-        riwayatProvider.fetchChildrenData();
-      } else{
-         riwayatProvider.filterChildrenByMonth(
-          filterModel.month,
-          filterModel.year,
-          filterModel.count,
-        );
-      }
-      Navigator.pop(context); // Kembali ke halaman sebelumnya atau halaman yang sesuai
-      Navigator.pop(context); // Menutup halaman sebelumnya
-
-      // Tampilkan pesan sukses atau navigasi ke halaman lain jika diperlukan
-    } catch (e) {
-      print('Gagal menyimpan data anak: $e');
-      // Tampilkan pesan error kepada pengguna
-    }
-  }
-
-  // Fungsi untuk mengumpulkan data gejala dari form ke objek AnakKader
-  // Hanya memperbarui properti gejala, sisanya tetap dari DataManager
-  AnakKader _collectGejalaDataForAnakKader() {
-    // Ambil data AnakKader yang sudah ada dari DataManager
-    // Ini penting agar data non-gejala tidak hilang
-    AnakKader currentAnakKader = _anakKaderDataManager.getData();
-
-    // Buat objek AnakKader baru dengan mengupdate hanya properti gejala
+  // Mengubah fungsi pengumpulan data agar lebih ringkas
+  AnakKader _collectGejalaDataForAnakKader(AnakKader current) {
+    // Membuat objek AnakKader baru dengan properti lama (current)
+    // dan hanya mengupdate properti gejala dari state lokal.
     return AnakKader(
-      tanggalPemeriksaan: currentAnakKader.tanggalPemeriksaan,
-      namaIbu: currentAnakKader.namaIbu,
-      namaAnak: currentAnakKader.namaAnak,
-      umurTahun: currentAnakKader.umurTahun,
-      umurBulan: currentAnakKader.umurBulan,
-      beratBadan: currentAnakKader.beratBadan,
-      tinggiBadan: currentAnakKader.tinggiBadan,
-      jenisKelamin: currentAnakKader.jenisKelamin,
-      konjungtivitaNormal: _konjungtivitaNormal,
-      kukuBersih: _kukuBersih,
-      tampakLemas: _tampakLemas,
-      tampakPucat: _tampakPucat,
-      riwayatAnemia: _riwayatAnemia,
-      id: currentAnakKader.id, // Pastikan ID tetap sama
+      tanggalPemeriksaan: current.tanggalPemeriksaan,
+      namaIbu: current.namaIbu,
+      namaAnak: current.namaAnak,
+      umurTahun: current.umurTahun,
+      umurBulan: current.umurBulan,
+      beratBadan: current.beratBadan,
+      tinggiBadan: current.tinggiBadan,
+      jenisKelamin: current.jenisKelamin,
+      id: current.id, 
+      
+      // Update data gejala
+      konjungtivitaNormal: _isKonjungtivitaPucat != null ? !_isKonjungtivitaPucat! : null,
+      kukuBersih: _isKukuRapuh != null ? !_isKukuRapuh! : null,
+      tampakLemas: _isTampakLemas,
+      tampakPucat: _isTampakPucat,
+      riwayatAnemia: _hasRiwayatAnemia,
     );
   }
 
-  bool get ButtonActive {
-    // Mengembalikan true jika semua gejala sudah diisi
-    return _konjungtivitaNormal != null &&
-           _kukuBersih != null &&
-           _tampakLemas != null &&
-           _tampakPucat != null &&
-           _riwayatAnemia != null;
+  // Menggunakan getter untuk menentukan apakah tombol harus aktif
+  bool get _isButtonActive {
+    return _isKonjungtivitaPucat != null &&
+           _isKukuRapuh != null &&
+           _isTampakLemas != null &&
+           _isTampakPucat != null &&
+           _hasRiwayatAnemia != null &&
+           !_isLoading;
   }
 
-  // Metode dispose tidak lagi diperlukan untuk TextEditingController
-  // karena sudah dihapus.
-  @override
-  void dispose() {
-    super.dispose();
+  // Fungsi Submit disederhanakan dan dipastikan berada dalam blok try-catch-finally
+  Future<void> _submitAnak() async {
+    if (!_isButtonActive) return; // Tambahkan pengaman
+
+    setState(() {
+      _isLoading = true;
+    });
+    
+    final AnakKader anakKaderData = _anakKaderDataManager.getData();
+    // 1. Kumpulkan data terbaru
+    AnakKader updatedAnakKader = _collectGejalaDataForAnakKader(anakKaderData);
+    updatedAnakKader.email = User.instance.email; 
+    
+    // 2. Update DataManager sebelum dikirim (opsional, tapi mengikuti pola lama)
+    _anakKaderDataManager.currentAnakKader = updatedAnakKader;
+
+    try {
+      // 3. Kirim ke API
+      await KaderServices().editAnakKader(updatedAnakKader.toJson());
+
+      // 4. Reset dan Update Provider (pastikan RiwayatProvider tersedia)
+      anakKaderData.reset();
+      final riwayatProvider = Provider.of<RiwayatProvider>(context, listen: false);
+
+      if (_filterModel.filter) {
+        riwayatProvider.filterChildrenByMonth(
+          _filterModel.month,
+          _filterModel.year,
+          _filterModel.count,
+        );
+      } else {
+        riwayatProvider.fetchChildrenData();
+      }
+
+      // 5. Tampilkan sukses
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data berhasil diubah!')),
+        );
+        // 6. Navigasi kembali (setelah sukses)
+        Navigator.pop(context); 
+        Navigator.pop(context);
+      }
+      
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengubah data: ${e.toString()}')),
+        );
+      }
+    } finally {
+      // 7. Hentikan loading
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  // Modifikasi _buildRadioRow untuk menerima bool? sebagai groupValue
+  // Reusable Widget untuk Radio Button Row
   Widget _buildRadioRow({
     required String title,
     required String question,
-    required bool valueForYes, // Nilai boolean untuk opsi 'Ya' (atau 'Merah Segar')
-    required String labelForYes,
-    required bool valueForNo,  // Nilai boolean untuk opsi 'Tidak' (atau 'Pucat')
-    required String labelForNo,
-    required bool? groupValue, // Sekarang menerima bool?
-    required ValueChanged<bool?> onChanged, // Mengubah nilai boolean
+    required String labelForTrue,
+    required String labelForFalse,
+    required bool? groupValue, 
+    required ValueChanged<bool?> onChanged, 
     required double width,
     required double height,
   })
   {
+    // Menggunakan groupValue langsung untuk menentukan warna
+    const Color activeColor = Color(0xFF9FC86A);
+    const Color activeBgColor = Color(0xFFF4F9EC);
+    const Color inactiveColor = Color(0xFFE2E8F0);
+    const Color textColor = Color(0xFF020617);
+    const Color questionColor = Color(0xFF64748B);
+
+    // Mematikan fungsi `onChanged` saat loading
+    final ValueChanged<bool?> radioOnChanged = _isLoading ? (value) {} : onChanged;
+
+    Widget buildOption({required bool value, required String label}) {
+      final isActive = groupValue == value;
+      return Expanded(
+        child: InkWell(
+          onTap: () => radioOnChanged(value),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            decoration: BoxDecoration(
+              color: isActive ? activeBgColor : Colors.white,
+              border: Border.all(
+                color: isActive ? activeColor : inactiveColor,
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Center(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  color: isActive ? activeColor : textColor,
+                  fontSize: width * 0.035,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
           style: GoogleFonts.poppins(
-            color: Colors.black,
+            color: textColor,
             fontSize: width * 0.04,
             fontWeight: FontWeight.w500,
           ),
@@ -160,7 +226,7 @@ class _EditRecapIIState extends State<EditRecapII> {
         Text(
           question,
           style: GoogleFonts.poppins(
-            color: const Color(0xFF64748B),
+            color: questionColor,
             fontSize: width * 0.035,
             fontWeight: FontWeight.w400,
           ),
@@ -169,59 +235,9 @@ class _EditRecapIIState extends State<EditRecapII> {
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            Expanded(
-              child: InkWell(
-                onTap: () => onChanged(valueForYes), // Mengirim true
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: groupValue == valueForYes ? const Color(0xFFF4F9EC) : Colors.white,
-                    border: Border.all(
-                      color: groupValue == valueForYes ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Center(
-                    child: Text(
-                      labelForYes,
-                      style: GoogleFonts.poppins(
-                        color: groupValue == valueForYes ? const Color(0xFF9FC86A) : Colors.black,
-                        fontSize: width * 0.035,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            buildOption(value: true, label: labelForTrue),
             SizedBox(width: width * 0.04),
-            Expanded(
-              child: InkWell(
-                onTap: () => onChanged(valueForNo), // Mengirim false
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: groupValue == valueForNo ? const Color(0xFFF4F9EC) : Colors.white,
-                    border: Border.all(
-                      color: groupValue == valueForNo ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
-                      width: 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: Center(
-                    child: Text(
-                      labelForNo,
-                      style: GoogleFonts.poppins(
-                        color: groupValue == valueForNo ? const Color(0xFF9FC86A) : Colors.black,
-                        fontSize: width * 0.035,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            buildOption(value: false, label: labelForFalse),
           ],
         ),
       ],
@@ -230,247 +246,288 @@ class _EditRecapIIState extends State<EditRecapII> {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      body: Container(
-        color: Colors.white,
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: 10.0),
-        child: Column(
+    // Menggunakan variabel final lokal
+    final double height = MediaQuery.of(context).size.height;
+    final double width = MediaQuery.of(context).size.width;
+    const Color primaryColor = Color(0xFF9FC86A);
+    
+    // Menggunakan WillPopScope untuk memblokir navigasi saat loading
+    return WillPopScope(
+      onWillPop: () async => !_isLoading,
+      child: Scaffold(
+        // Menggunakan Stack untuk menampilkan loading overlay
+        body: Stack(
           children: [
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
+            // Konten Utama (Form)
+            Container(
+              color: Colors.white,
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: width * 0.05, vertical: height * 0.03), // Padding disesuaikan
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        // Menggunakan padding top untuk menghindari status bar
+                        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10),
                         children: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              alignment: Alignment.centerLeft,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: height * 0.035,
-                                  height: height * 0.035,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    border: Border.all(
-                                      color: const Color(0xFFE2E8F0),
-                                      width: 1.0,
-                                    ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.arrow_back,
-                                    color: Color(0xFF020617),
-                                    size: 20.0,
-                                  ),
-                                ),
-                                const SizedBox(width: 8.0),
-                                Text(
-                                  "Kembali",
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFF020617),
-                                    fontSize: width * 0.04,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          // Header
+                          _buildHeader(context, width, height),
+                          
+                          SizedBox(height: height * 0.02),
+                          
+                          // Judul Form
+                          Text(
+                            "Tambah Data",
+                            style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
                           ),
                           Text(
-                            "Langkah 2 dari 2",
+                            "Data anak ke-1",
                             style: GoogleFonts.poppins(
-                              color: const Color(0xFFA1A1AA),
-                              fontSize: width * 0.03,
-                              fontWeight: FontWeight.w400,
-                            ),
+                                fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
                           ),
+                          
+                          SizedBox(height: height * 0.03),
+
+                          // Bagian Gejala
+                          Text(
+                            "Gejala",
+                            style: GoogleFonts.poppins(fontSize: width * 0.04, fontWeight: FontWeight.w600),
+                          ),
+                          SizedBox(height: height * 0.02),
+                          
+                          // Kotak Form Gejala
+                          _buildGejalaFormContainer(width, height),
                         ],
-                      ),
-                    ),
-                    SizedBox(height: height * 0.02),
-                    Text(
-                      "Tambah Data",
-                      style: GoogleFonts.poppins(fontSize: width * 0.06, fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      "Data anak ke-1",
-                      style: GoogleFonts.poppins(
-                          fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
-                    ),
-                    SizedBox(height: height * 0.02),
-
-                    Text(
-                      "Gejala",
-                      style: GoogleFonts.poppins(fontSize: width * 0.04, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(height: height * 0.02),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Konjungtivita Normal Section
-                          _buildRadioRow(
-                            title: "Konjungtiva",
-                            question: "Kecil dan Abu-abu. Saat kelopak mata bawah anak ditarik perlahan, apakah warnanya merah segar?",
-                            valueForYes: true,
-                            labelForYes: "Merah Segar",
-                            valueForNo: false,
-                            labelForNo: "Pucat",
-                            groupValue: _konjungtivitaNormal,
-                            onChanged: (value) {
-                              setState(() {
-                                _konjungtivitaNormal = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          // Kuku Bersih Section
-                          _buildRadioRow(
-                            title: "Kuku",
-                            question: "Apakah kuku anak bersih dan tidak rapuh?",
-                            valueForYes: true,
-                            labelForYes: "Ya, bersih",
-                            valueForNo: false,
-                            labelForNo: "Rapuh/Pucat",
-                            groupValue: _kukuBersih,
-                            onChanged: (value) {
-                              setState(() {
-                                _kukuBersih = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          // Tampak Lemas Section
-                          _buildRadioRow(
-                            title: "Lemas",
-                            question: "Anak terlihat Lemas?",
-                            valueForYes: true,
-                            labelForYes: "Ya",
-                            valueForNo: false,
-                            labelForNo: "Tidak",
-                            groupValue: _tampakLemas,
-                            onChanged: (value) {
-                              setState(() {
-                                _tampakLemas = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          // Tampak Pucat Section
-                          _buildRadioRow(
-                            title: "Pucat",
-                            question: "Anak terlihat pucat?",
-                            valueForYes: true,
-                            labelForYes: "Ya",
-                            valueForNo: false,
-                            labelForNo: "Tidak",
-                            groupValue: _tampakPucat,
-                            onChanged: (value) {
-                              setState(() {
-                                _tampakPucat = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.02),
-
-                          // Riwayat Anemia Section
-                          _buildRadioRow(
-                            title: "Riwayat Anemia",
-                            question: "Apakah anak memiliki riwayat anemia?",
-                            valueForYes: true,
-                            labelForYes: "Ya",
-                            valueForNo: false,
-                            labelForNo: "Tidak",
-                            groupValue: _riwayatAnemia,
-                            onChanged: (value) {
-                              setState(() {
-                                _riwayatAnemia = value;
-                              });
-                            },
-                            width: width,
-                            height: height,
-                          ),
-                          SizedBox(height: height * 0.01),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(height: height * 0.02),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: ButtonActive ? () {
-                      AnakKader updatedAnakKader = _collectGejalaDataForAnakKader();
-                      updatedAnakKader.email = User.instance.email; // Pastikan email diisi
-                      // Simpan data ke DataManager (ini akan memperbarui objek currentAnakKader)
-                      _anakKaderDataManager.currentAnakKader = updatedAnakKader;
-                      print('Data gejala saat ini (Tombol Selanjutnya) dan disimpan ke DataManager:');
-                      print(updatedAnakKader.toJson());
-                      _SubmitAnak(); // Panggil fungsi untuk mengirim data ke backend
-                      // Lanjutkan ke halaman berikutnya
-                    } : null, // Tombol tidak bisa ditekan saat ButtonActive adalah false
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      "Update Data",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: width * 0.035,
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
-                ),
-              ],
+                  
+                  SizedBox(height: height * 0.02),
+                  
+                  // Tombol Submit
+                  _buildSubmitButton(width, primaryColor),
+                  
+                  SizedBox(height: height * 0.04),
+                ],
+              ),
             ),
-            SizedBox(height: height * 0.06),
+            
+            // Loading Overlay
+            if (_isLoading)
+              _buildLoadingOverlay(width),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, double width, double height) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.pop(context),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            alignment: Alignment.centerLeft,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: height * 0.035,
+                height: height * 0.035,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(
+                    color: const Color(0xFFE2E8F0),
+                    width: 1.0,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Color(0xFF020617),
+                  size: 20.0,
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              Text(
+                "Kembali",
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF020617),
+                  fontSize: width * 0.04,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          "Langkah 2 dari 2",
+          style: GoogleFonts.poppins(
+            color: const Color(0xFFA1A1AA),
+            fontSize: width * 0.03,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGejalaFormContainer(double width, double height) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Catatan: Nilai Boolean di sini dibalik agar sesuai dengan penamaan state
+          // Konjungtiva: Merah Segar (false) vs Pucat (true)
+          _buildRadioRow(
+            title: "Konjungtiva",
+            question: "Saat kelopak mata bawah ditarik perlahan, apakah warnanya merah segar?",
+            labelForTrue: "Merah Segar",
+            labelForFalse: "Pucat",
+            groupValue: _isKonjungtivitaPucat,
+            onChanged: (value) => setState(() => _isKonjungtivitaPucat = value),
+            width: width,
+            height: height,
+          ),
+          SizedBox(height: height * 0.02),
+
+          // Kuku: Rapuh/Pucat (true) vs Bersih (false)
+          _buildRadioRow(
+            title: "Kuku",
+            question: "Apakah kuku anak bersih dan tidak rapuh?",
+            labelForTrue: "Ya, Bersih",
+            labelForFalse: "Merah Segar",
+            groupValue: _isKukuRapuh,
+            onChanged: (value) => setState(() => _isKukuRapuh = value),
+            width: width,
+            height: height,
+          ),
+          SizedBox(height: height * 0.02),
+
+          // Tampak Lemas: Ya (true) vs Tidak (false)
+          _buildRadioRow(
+            title: "Lemas",
+            question: "Anak terlihat Lemas?",
+            labelForTrue: "Ya",
+            labelForFalse: "Tidak",
+            groupValue: _isTampakLemas,
+            onChanged: (value) => setState(() => _isTampakLemas = value),
+            width: width,
+            height: height,
+          ),
+          SizedBox(height: height * 0.02),
+
+          // Tampak Pucat: Ya (true) vs Tidak (false)
+          _buildRadioRow(
+            title: "Pucat",
+            question: "Anak terlihat pucat?",
+            labelForTrue: "Ya",
+            labelForFalse: "Tidak",
+            groupValue: _isTampakPucat,
+            onChanged: (value) => setState(() => _isTampakPucat = value),
+            width: width,
+            height: height,
+          ),
+          SizedBox(height: height * 0.02),
+
+          // Riwayat Anemia: Ya (true) vs Tidak (false)
+          _buildRadioRow(
+            title: "Riwayat Anemia",
+            question: "Apakah anak memiliki riwayat anemia?",
+            labelForTrue: "Ya",
+            labelForFalse: "Tidak",
+            groupValue: _hasRiwayatAnemia,
+            onChanged: (value) => setState(() => _hasRiwayatAnemia = value),
+            width: width,
+            height: height,
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+  
+  Widget _buildSubmitButton(double width, Color primaryColor) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: _isButtonActive ? _submitAnak : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isButtonActive ? primaryColor : Colors.grey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              elevation: 0,
+            ),
+            child: _isLoading 
+              ? const SizedBox(
+                  width: 20, 
+                  height: 20, 
+                  child: CircularProgressIndicator(
+                    color: Colors.white, 
+                    strokeWidth: 3,
+                  )
+                )
+              : Text(
+                  "Update Data",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: width * 0.035,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingOverlay(double width) {
+    const Color loadingColor = Color(0xFF9FC86A);
+    
+    return Material(
+      color: Colors.black.withOpacity(0.3),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Mengunggah data...",
+                style: GoogleFonts.poppins(
+                  fontSize: width * 0.04,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

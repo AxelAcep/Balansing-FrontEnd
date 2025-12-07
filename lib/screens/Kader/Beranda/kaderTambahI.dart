@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:balansing/screens/Kader/Beranda/kaderTambahII.dart';
-// Import model dan data manager yang baru kita buat
 import 'package:balansing/models/anakKader_model.dart';
 
 class KaderTambahI extends StatefulWidget {
@@ -12,7 +11,6 @@ class KaderTambahI extends StatefulWidget {
 }
 
 class _KaderTambahIState extends State<KaderTambahI> {
-  // Ambil instance data placeholder dari Data Manager
   final AnakKader _anakKader = AnakKaderDataManager().getData();
 
   final TextEditingController _namaIbuController = TextEditingController();
@@ -22,27 +20,61 @@ class _KaderTambahIState extends State<KaderTambahI> {
   final TextEditingController _bbController = TextEditingController();
   final TextEditingController _tbController = TextEditingController();
 
-  // _selectedDate dan _selectedGender akan diinisialisasi dari _anakKader di initState
-  DateTime? _selectedDate;
+  DateTime _selectedDate = DateTime.now(); // Tanggal pemeriksaan (hari ini)
+  DateTime? _selectedBirthDate; // Tanggal lahir anak
   String? _selectedGender;
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dan state dari data yang ada di _anakKader
-    _selectedDate = _anakKader.tanggalPemeriksaan ?? DateTime.now();
+    _selectedDate = DateTime.now(); // SELALU hari ini
+    _selectedBirthDate = _anakKader.tanggalLahir;
     _namaIbuController.text = _anakKader.namaIbu ?? '';
     _namaAnakController.text = _anakKader.namaAnak ?? '';
-    _tahunController.text = _anakKader.umurTahun?.toString() ?? '';
-    _bulanController.text = _anakKader.umurBulan?.toString() ?? '';
     _bbController.text = _anakKader.beratBadan?.toString() ?? '';
     _tbController.text = _anakKader.tinggiBadan?.toString() ?? '';
     _selectedGender = _anakKader.jenisKelamin;
+    
+    // Hitung umur jika tanggal lahir sudah ada
+    if (_selectedBirthDate != null) {
+      _calculateAge();
+    }
   }
 
-  // Fungsi untuk menyimpan data ke _anakKader
+  // Fungsi untuk menghitung umur berdasarkan tanggal lahir
+  void _calculateAge() {
+    if (_selectedBirthDate == null) return;
+
+    final now = _selectedDate; // Gunakan tanggal pemeriksaan (hari ini)
+    int years = now.year - _selectedBirthDate!.year;
+    int months = now.month - _selectedBirthDate!.month;
+
+    // Jika bulan negatif, kurangi 1 tahun dan tambah 12 bulan
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    // Jika hari lahir belum lewat di bulan ini, kurangi 1 bulan
+    if (now.day < _selectedBirthDate!.day) {
+      months--;
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+    }
+
+    setState(() {
+      _tahunController.text = years.toString();
+      _bulanController.text = months.toString();
+      _anakKader.umurTahun = years;
+      _anakKader.umurBulan = months;
+    });
+  }
+
   void _saveDataToModel() {
     _anakKader.tanggalPemeriksaan = _selectedDate;
+    _anakKader.tanggalLahir = _selectedBirthDate;
     _anakKader.namaIbu = _namaIbuController.text;
     _anakKader.namaAnak = _namaAnakController.text;
     _anakKader.umurTahun = int.tryParse(_tahunController.text);
@@ -51,9 +83,9 @@ class _KaderTambahIState extends State<KaderTambahI> {
     _anakKader.tinggiBadan = double.tryParse(_tbController.text);
     _anakKader.jenisKelamin = _selectedGender;
 
-    // Anda bisa menambahkan debugPrint untuk melihat data yang tersimpan
     debugPrint('Data AnakKader yang disimpan:');
-    debugPrint('Tanggal: ${_anakKader.tanggalPemeriksaan}');
+    debugPrint('Tanggal Pemeriksaan: ${_anakKader.tanggalPemeriksaan}');
+    debugPrint('Tanggal Lahir: ${_anakKader.tanggalLahir}');
     debugPrint('Nama Ibu: ${_anakKader.namaIbu}');
     debugPrint('Nama Anak: ${_anakKader.namaAnak}');
     debugPrint('Umur Tahun: ${_anakKader.umurTahun}');
@@ -65,6 +97,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
 
   void _resetDatatoModel() {
     _selectedDate = DateTime.now();
+    _selectedBirthDate = null;
     _namaIbuController.clear();
     _namaAnakController.clear();
     _tahunController.clear();
@@ -72,15 +105,12 @@ class _KaderTambahIState extends State<KaderTambahI> {
     _bbController.clear();
     _tbController.clear();
     _selectedGender = null;
-
     _anakKader.reset();
   }
 
   @override
   void dispose() {
-    // Panggil _saveDataToModel di dispose() agar data tersimpan saat widget dilepas dari tree
     _saveDataToModel();
-
     _namaIbuController.dispose();
     _namaAnakController.dispose();
     _tahunController.dispose();
@@ -90,12 +120,12 @@ class _KaderTambahIState extends State<KaderTambahI> {
     super.dispose();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  Future<void> _selectBirthDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate: _selectedBirthDate ?? DateTime.now().subtract(const Duration(days: 365)),
       firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now(),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -131,9 +161,10 @@ class _KaderTambahIState extends State<KaderTambahI> {
         );
       },
     );
-    if (picked != null && picked != _selectedDate) {
+    if (picked != null && picked != _selectedBirthDate) {
       setState(() {
-        _selectedDate = picked;
+        _selectedBirthDate = picked;
+        _calculateAge(); // Hitung umur otomatis
       });
     }
   }
@@ -145,7 +176,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
       _bulanController.text.isNotEmpty &&
       _bbController.text.isNotEmpty &&
       _tbController.text.isNotEmpty &&
-      _selectedDate != null &&
+      _selectedBirthDate != null &&
       _selectedGender != null;
 
   @override
@@ -169,51 +200,52 @@ class _KaderTambahIState extends State<KaderTambahI> {
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         TextButton(
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    title: const Text(
-                                      'Apakah Anda yakin?',
-                                      style: TextStyle(color: Colors.red), // Judul merah
-                                    ),
-                                    content: const Text(
-                                      'Aksi Anda tidak akan disimpan. Tindakan ini tidak dapat dikembalikan lagi.',
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // Tutup dialog
-                                        },
-                                        child: Text(
-                                                  "Tidak",
-                                                  style: GoogleFonts.poppins(
-                                                    color: const Color(0xFF020617),
-                                                    fontSize: width * 0.035,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ), // "Kembali" biru,
-                                      ),
-                                      TextButton(
-                                        onPressed: () {
-                                          // Panggil fungsi reset data
-                                          _resetDatatoModel();
-                                          // Tutup dialog
-                                          Navigator.of(context).pop();
-                                          // Kembali ke halaman sebelumnya
-                                          Navigator.pop(context);
-                                        },
-                                        child: Text(
-                                          'Ya, Kembali',
-                                          style: GoogleFonts.poppins(color: Colors.red, fontSize: width*0.035, fontWeight: FontWeight.w500 ), // "Ya" merah
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                    'Apakah Anda yakin?',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                  content: const Text(
+                                    'Aksi Anda tidak akan disimpan. Tindakan ini tidak dapat dikembalikan lagi.',
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(
+                                        "Tidak",
+                                        style: GoogleFonts.poppins(
+                                          color: const Color(0xFF020617),
+                                          fontSize: width * 0.035,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        _resetDatatoModel();
+                                        Navigator.of(context).pop();
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        'Ya, Kembali',
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.red,
+                                          fontSize: width * 0.035,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
@@ -274,6 +306,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                         fontSize: width * 0.035, fontWeight: FontWeight.w400, color: const Color(0xFF64748B)),
                   ),
                   SizedBox(height: height * 0.02),
+                  // Tanggal Pemeriksaan (HARI INI - READ ONLY)
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -286,13 +319,57 @@ class _KaderTambahIState extends State<KaderTambahI> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Tanggal",
+                          "Tanggal Pemeriksaan",
+                          style: GoogleFonts.poppins(
+                              fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC), // Background abu-abu muda untuk read-only
+                            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_month, size: height * 0.02, color: const Color(0xFF64748B)),
+                              SizedBox(width: width * 0.02),
+                              Text(
+                                "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                                style: GoogleFonts.poppins(
+                                  fontSize: width * 0.035,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: height * 0.02),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Tanggal Lahir Anak",
                           style: GoogleFonts.poppins(
                               fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
                         ),
                         const SizedBox(height: 8.0),
                         InkWell(
-                          onTap: () => _selectDate(context),
+                          onTap: () => _selectBirthDate(context),
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
@@ -302,16 +379,18 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.calendar_month, size: height * 0.02, color: const Color.fromARGB(255, 148, 152, 158),),
-                                SizedBox(width: width * 0.02,),
+                                Icon(Icons.calendar_today, size: height * 0.02, color: const Color(0xFF64748B)),
+                                SizedBox(width: width * 0.02),
                                 Text(
-                                  _selectedDate == null
-                                      ? "Pilih Tanggal"
-                                      : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+                                  _selectedBirthDate == null
+                                      ? "Pilih Tanggal Lahir"
+                                      : "${_selectedBirthDate!.day}/${_selectedBirthDate!.month}/${_selectedBirthDate!.year}",
                                   style: GoogleFonts.poppins(
                                     fontSize: width * 0.035,
                                     fontWeight: FontWeight.w400,
-                                    color: _selectedDate == null ? const Color.fromARGB(255, 148, 152, 158) : const Color.fromARGB(255, 148, 152, 158),
+                                    color: _selectedBirthDate == null
+                                        ? const Color(0xFFA1A1AA)
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -321,12 +400,12 @@ class _KaderTambahIState extends State<KaderTambahI> {
                       ],
                     ),
                   ),
-                  SizedBox(height: height * 0.02,),
-                  Text("Identitas", style: GoogleFonts.poppins(
-                      fontSize: width * 0.04,
-                      fontWeight: FontWeight.w600
-                  ),),
-                  SizedBox(height: height * 0.02,),
+                  SizedBox(height: height * 0.02),
+                  Text(
+                    "Identitas",
+                    style: GoogleFonts.poppins(fontSize: width * 0.04, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: height * 0.02),
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -366,11 +445,10 @@ class _KaderTambahIState extends State<KaderTambahI> {
                               borderRadius: BorderRadius.circular(8.0),
                               borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
                             ),
-                            contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                           ),
                         ),
-                        SizedBox(height: height * 0.02,),
+                        SizedBox(height: height * 0.02),
                         Text(
                           "Nama Anak",
                           style: GoogleFonts.poppins(
@@ -399,11 +477,11 @@ class _KaderTambahIState extends State<KaderTambahI> {
                               borderRadius: BorderRadius.circular(8.0),
                               borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
                             ),
-                            contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                           ),
                         ),
-                        SizedBox(height: height * 0.02,),
+                        SizedBox(height: height * 0.02),
+                        // UMUR (READ ONLY - AUTO CALCULATED)
                         Text(
                           "Umur",
                           style: GoogleFonts.poppins(
@@ -429,12 +507,14 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             Expanded(
                               child: TextField(
                                 controller: _tahunController,
-                                keyboardType: TextInputType.number,
+                                enabled: false, // READ ONLY
                                 decoration: InputDecoration(
                                   hintText: "Tahun",
                                   hintStyle: GoogleFonts.poppins(
                                     color: const Color(0xFFA1A1AA),
                                   ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -443,12 +523,11 @@ class _KaderTambahIState extends State<KaderTambahI> {
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
+                                  disabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                 ),
                               ),
                             ),
@@ -465,12 +544,14 @@ class _KaderTambahIState extends State<KaderTambahI> {
                             Expanded(
                               child: TextField(
                                 controller: _bulanController,
-                                keyboardType: TextInputType.number,
+                                enabled: false, // READ ONLY
                                 decoration: InputDecoration(
                                   hintText: "Bulan",
                                   hintStyle: GoogleFonts.poppins(
                                     color: const Color(0xFFA1A1AA),
                                   ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -479,18 +560,17 @@ class _KaderTambahIState extends State<KaderTambahI> {
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
+                                  disabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: height * 0.01,),
+                        SizedBox(height: height * 0.01),
                         Text(
                           "BB/TB",
                           style: GoogleFonts.poppins(
@@ -534,8 +614,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                 ),
                               ),
                             ),
@@ -570,8 +649,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                 ),
                               ),
                             ),
@@ -590,7 +668,6 @@ class _KaderTambahIState extends State<KaderTambahI> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            // Laki-laki Checkbox
                             InkWell(
                               onTap: () {
                                 setState(() {
@@ -603,9 +680,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                                     width: 24,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: _selectedGender == 'Laki-laki'
-                                          ? const Color(0xFF76A73B)
-                                          : Colors.white,
+                                      color: _selectedGender == 'Laki-laki' ? const Color(0xFF76A73B) : Colors.white,
                                       border: Border.all(
                                         color: _selectedGender == 'Laki-laki'
                                             ? const Color(0xFF76A73B)
@@ -631,7 +706,6 @@ class _KaderTambahIState extends State<KaderTambahI> {
                               ),
                             ),
                             SizedBox(width: width * 0.08),
-                            // Perempuan Checkbox
                             InkWell(
                               onTap: () {
                                 setState(() {
@@ -644,9 +718,7 @@ class _KaderTambahIState extends State<KaderTambahI> {
                                     width: 24,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: _selectedGender == 'Perempuan'
-                                          ? const Color(0xFF76A73B)
-                                          : Colors.white,
+                                      color: _selectedGender == 'Perempuan' ? const Color(0xFF76A73B) : Colors.white,
                                       border: Border.all(
                                         color: _selectedGender == 'Perempuan'
                                             ? const Color(0xFF76A73B)
@@ -679,19 +751,16 @@ class _KaderTambahIState extends State<KaderTambahI> {
                 ],
               ),
             ),
-            SizedBox(height: height * 0.02,), // Space above the buttons
+            SizedBox(height: height * 0.02),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Button 1: Simpan & keluar
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
-                      _saveDataToModel(); // Simpan data sebelum keluar
-                      Navigator.pop(context); // Kembali ke halaman sebelumnya
-                      // Anda mungkin ingin membersihkan data setelah disimpan ke database permanen
-                      // AnakKaderDataManager().clearData();
+                      _saveDataToModel();
+                      Navigator.pop(context);
                       print('Data disimpan dan keluar');
                     },
                     style: ElevatedButton.styleFrom(
@@ -713,19 +782,19 @@ class _KaderTambahIState extends State<KaderTambahI> {
                   ),
                 ),
                 SizedBox(width: width * 0.04),
-                // Button 2: Selanjutnya
                 Expanded(
-                  child:ElevatedButton(
-                    onPressed: ButtonActive ? () {
-                      _saveDataToModel();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => KaderTambahII()),
-                      );
-                      print('Lanjut ke halaman berikutnya dengan data tersimpan.');
-                    } : null, // Tombol tidak bisa ditekan saat `onPressed` adalah `null`
+                  child: ElevatedButton(
+                    onPressed: ButtonActive
+                        ? () {
+                            _saveDataToModel();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => KaderTambahII()),
+                            );
+                            print('Lanjut ke halaman berikutnya dengan data tersimpan.');
+                          }
+                        : null,
                     style: ElevatedButton.styleFrom(
-                      // Properti `backgroundColor` juga bisa diatur secara dinamis
                       backgroundColor: ButtonActive ? const Color(0xFF9FC86A) : Colors.grey,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
@@ -741,11 +810,11 @@ class _KaderTambahIState extends State<KaderTambahI> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  )
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: height * 0.06,),
+            SizedBox(height: height * 0.06),
           ],
         ),
       ),

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:balansing/screens/Kader/Beranda/kaderTambahI.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,24 +51,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
     );
   }
 
-  String markdownArtikel = """
-# Penyuluhan dan Pemantauan Stunting & Anemia
----
-### Tingginya Data Stunting dan Anemia
-Berdasarkan data yang diterima, kasus **stunting** dan **anemia** pada ibu hamil dan balita menunjukkan angka yang cukup tinggi di wilayah kita. Angka ini menjadi lampu kuning yang harus segera ditangani secara serius. Stunting dapat menyebabkan dampak jangka panjang yang signifikan pada pertumbuhan fisik dan kognitif anak, sementara anemia pada ibu hamil dapat meningkatkan risiko komplikasi saat persalinan. 
-
----
-### Pentingnya Penyuluhan Eksplisit dan Detail
-Untuk mengatasi masalah ini, diperlukan program **penyuluhan yang lebih eksplisit dan mendalam**. Penyuluhan tidak bisa hanya bersifat umum, melainkan harus menyentuh akar permasalahan di tingkat keluarga. Materi penyuluhan harus mencakup pentingnya nutrisi seimbang, pola makan yang benar, serta pemahaman tentang gejala dan cara pencegahan stunting dan anemia.
-
----
-### Pemantauan Terus Menerus
-Selain penyuluhan, **pemantauan secara rutin dan detail** menjadi kunci keberhasilan. Setiap kasus stunting dan anemia harus dipantau secara individual untuk memastikan intervensi yang diberikan berjalan efektif. Pemantauan ini bisa meliputi pengukuran berat dan tinggi badan secara berkala, pemeriksaan kadar hemoglobin, serta konseling gizi yang berkelanjutan. 
-
----
-### Ajakan Bertindak
-Mari kita bersama-sama bergerak untuk menurunkan angka stunting dan anemia. Dengan **penyuluhan yang efektif dan pemantauan yang ketat**, kita dapat menciptakan generasi yang lebih sehat dan kuat.
-    """;
+  String markdownArtikel = """  """;
 
   @override
   void initState() {
@@ -136,12 +121,16 @@ Mari kita bersama-sama bergerak untuk menurunkan angka stunting dan anemia. Deng
           final rt = dashboardProvider.rt;
           final rw = dashboardProvider.rw;
           final posyandu = dashboardProvider.posyandu;
-          
+          final tinjauan = dashboardProvider.tinjauan;
+
+          markdownArtikel = tinjauan;
+
           final double totalChildren = pieChartData.fold(0, (sum, item) => sum + item.value);
 
           final month = filterModel.month;
           final count = filterModel.count;
           final year = filterModel.year;
+          
 
           final anemiaPersen = dashboardProvider.anemiaChangePercentage;
           final stuntingPersen = dashboardProvider.stuntingChangePercentage;
@@ -1675,11 +1664,6 @@ Mari kita bersama-sama bergerak untuk menurunkan angka stunting dan anemia. Deng
                               ],
                             ),
                           ),
-                        
-                      
-
-                      
-
                     ],
                   ),
                 ),

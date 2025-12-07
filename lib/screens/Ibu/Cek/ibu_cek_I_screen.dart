@@ -379,7 +379,7 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                         await Navigator.push( // Await the push so you can refresh
                           context,
                           MaterialPageRoute(
-                            builder: (context) => TutorialFlowScreen(),
+                            builder: (context) => const TutorialFlowScreen(),
                           ),
                         );
                       },
@@ -652,12 +652,12 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                             scrollDirection: Axis.horizontal,
                               child: Row(
                               children: [
-                                Container(
+                                SizedBox(
                                   height: height * 0.2,
                                   child: Image.asset('assets/images/konjungtivaI.png'),
                                 ),
                                 SizedBox(width: width * 0.05),
-                                Container(
+                                SizedBox(
                                   height: height * 0.2,
                                   child: Image.asset('assets/images/konjungtivaII.jpg'),
                                 ),
@@ -719,12 +719,12 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                             scrollDirection: Axis.horizontal,
                               child: Row(
                               children: [
-                                Container(
+                                SizedBox(
                                   height: height * 0.2,
                                   child: Image.asset('assets/images/kukuI.png'),
                                 ),
                                 SizedBox(width: width * 0.05),
-                                Container(
+                                SizedBox(
                                   height: height * 0.2,
                                   child: Image.asset('assets/images/kukunew.png'),
                                 ),
@@ -792,7 +792,7 @@ class _IbuCekIScreenState extends State<IbuCekIScreen> {
                       ),
                     ),
                     SizedBox(height: height * 0.02),
-                    Container(
+                    SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: ButtonActive

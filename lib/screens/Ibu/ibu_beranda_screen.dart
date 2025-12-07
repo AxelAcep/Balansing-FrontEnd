@@ -577,12 +577,12 @@ class _IbuBerandaScreenState extends State<IbuBerandaScreen> {
 
   Widget _buildButton(String buttonText, String activeState, double width) {
     final bool isActive = _activeButton == activeState;
-    final Color activeColor = const Color(0xFFF4F9EC);
-    final Color inactiveColor = Colors.transparent;
-    final Color activeTextColor = const Color(0xFF64748B);
-    final Color inactiveTextColor = const Color(0xFF64748B);
-    final Color activeBorderColor = const Color(0xFF76A73B);
-    final Color inactiveBorderColor = const Color(0xFFE2E8F0);
+    const Color activeColor = Color(0xFFF4F9EC);
+    const Color inactiveColor = Colors.transparent;
+    const Color activeTextColor = Color(0xFF64748B);
+    const Color inactiveTextColor = Color(0xFF64748B);
+    const Color activeBorderColor = Color(0xFF76A73B);
+    const Color inactiveBorderColor = Color(0xFFE2E8F0);
 
     return GestureDetector(
       onTap: () {

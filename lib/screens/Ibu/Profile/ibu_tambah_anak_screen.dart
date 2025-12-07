@@ -73,7 +73,7 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
     
     // 3. Jika berhasil, tampilkan SnackBar sukses
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text(
           'Data anak berhasil ditambahkan!',
           style: TextStyle(color: Colors.white),
@@ -96,7 +96,7 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
       SnackBar(
         content: Text(
           'Gagal menambahkan data: ${e.toString()}',
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
@@ -232,7 +232,7 @@ class _IbuTambahAnakState extends State<IbuTambahAnak> {
             Expanded(
               child: ListView(
                 children: [
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

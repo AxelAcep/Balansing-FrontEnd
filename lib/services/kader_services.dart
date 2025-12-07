@@ -126,8 +126,6 @@ Future<List<Map<String, dynamic>>> deleteAnakKader(String id) async {
         'count': count,
       }),
       );
-      
-      print(response); 
 
       if (response.statusCode == 200) {
         // Ubah tipe data dari `Map` menjadi `List<dynamic>`
@@ -191,7 +189,7 @@ Future<List<Map<String, dynamic>>> deleteAnakKader(String id) async {
         throw Exception('Gagal mengupload anak kader. Status: ${response.statusCode}, Pesan: ${errorBody['message'] ?? 'Tidak ada pesan error'}');
       }}catch (e) {
       print('Terjadi kesalahan saat memperbarui profil kader: $e');
-      throw Exception('Terjadi kesalahan jaringan atau server: $e');
+      throw Exception('Terjadi kesalahan jaringan atau server: Periksa koneksi internet Anda dan coba lagi di waktu lain.');
     }
   }
   

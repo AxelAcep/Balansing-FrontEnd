@@ -146,17 +146,20 @@ class DashboardProvider with ChangeNotifier {
   String _posyandu = "Tidak Tersedia";
   String _rt = "Tidak Tersedia";
   String _rw = "Tidak Tersedia";
+  String _tinjauan = "Tidak Tersedia";
 
   // Getters publik untuk mengakses data
   String get posyandu => _posyandu;
   String get rt => _rt;
   String get rw => _rw;
+  String get tinjauan => _tinjauan;
 
   Future<void> fetchKaderProfile() async {
     // Set loading state jika diperlukan
     _posyandu = "Memuat...";
     _rt = "Memuat...";
     _rw = "Memuat...";
+    _tinjauan = "Memuat...";
     notifyListeners();
 
     try {
@@ -165,6 +168,7 @@ class DashboardProvider with ChangeNotifier {
         _posyandu = "Email tidak tersedia";
         _rt = "Email tidak tersedia";
         _rw = "Email tidak tersedia";
+        _tinjauan = "Email tidak tersedia";
         notifyListeners();
         return;
       }
@@ -175,6 +179,7 @@ class DashboardProvider with ChangeNotifier {
       _posyandu = data['namaPosyandu'] ?? 'Tidak Tersedia';
       _rt = data['rt'] ?? 'Tidak Tersedia';
       _rw = data['rw'] ?? 'Tidak Tersedia';
+      _tinjauan = data['tinjauan'] ?? 'Tidak Tersedia';
       
       _errorMessage = null; // Reset error jika berhasil
     } catch (e) {
@@ -182,6 +187,7 @@ class DashboardProvider with ChangeNotifier {
       _posyandu = "Gagal memuat";
       _rt = "Gagal memuat";
       _rw = "Gagal memuat";
+      _tinjauan = "Gagal memuat";
       _errorMessage = 'Gagal memuat profil kader: $e';
     }
 

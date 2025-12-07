@@ -61,7 +61,7 @@ class _PathScreen extends State<PathScreen> {
                   ),
                 ),
               ),
-            Container(
+            SizedBox(
               width: width * 0.9,
               height: height * 0.45,
               child: Column(mainAxisAlignment: MainAxisAlignment.start, crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,12 +69,12 @@ class _PathScreen extends State<PathScreen> {
                   Text("Pilih Role Anda", style: GoogleFonts.poppins(
                     fontSize: height*0.03,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF76A73B),
+                    color: const Color(0xFF76A73B),
                   ),),
                   Text("Mulai perjalananmu sesuai peran. Pilih sebagai Ibu atau Kader dan nikmati fitur yang dibuat khusus buat Anda", style: GoogleFonts.poppins(
                     fontSize: height*0.013,
                     fontWeight: FontWeight.w400,
-                    color: Color(0xFF64748B),
+                    color: const Color(0xFF64748B),
                   ),),
                   SizedBox(height: height * 0.02,),
                   GestureDetector(
@@ -243,13 +243,13 @@ class _PathScreen extends State<PathScreen> {
                         if(_KaderisSelected) {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => LoginScreen()),
+                            MaterialPageRoute(builder: (context) => const LoginScreen()),
                           );
                         }
                         if(_IbuisSelected) {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => LoginScreenIbu()),
+                            MaterialPageRoute(builder: (context) => const LoginScreenIbu()),
                           );
                         }
                       }
@@ -262,7 +262,7 @@ class _PathScreen extends State<PathScreen> {
                       ),
                       padding: EdgeInsets.zero, // Menghapus padding default jika ingin kontrol penuh pada child
                     ),
-                    child: Text(
+                    child: const Text(
                       "Konfirmasi",
                       style: TextStyle(
                         color: Colors.white, 

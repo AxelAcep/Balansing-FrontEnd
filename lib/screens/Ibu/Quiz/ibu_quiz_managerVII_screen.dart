@@ -269,7 +269,7 @@ class QuizQuestion extends StatelessWidget {
         SizedBox(height: width * 0.02),
         Row(
           children: [
-            Container(
+            SizedBox(
               width: width * 0.22,
               height: height * 0.055,
               child: _buildChoiceButton(
@@ -280,7 +280,7 @@ class QuizQuestion extends StatelessWidget {
               ),
             ),
             SizedBox(width: width * 0.02),
-            Container(
+            SizedBox(
               width: width * 0.22,
               height: height * 0.055,
               child: _buildChoiceButton(

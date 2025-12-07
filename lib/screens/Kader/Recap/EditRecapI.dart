@@ -29,9 +29,11 @@ class _EditRecapStateI extends State<EditRecapI> {
   final TextEditingController _tbController = TextEditingController();
 
   // _selectedDate dan _selectedGender akan diinisialisasi dari _anakKader di initState
-  DateTime? _selectedDate;
+  DateTime _selectedDate = DateTime.now(); // Tanggal pemeriksaan (hari ini)
   String? _selectedGender;
-  
+  DateTime? _selectedBirthDate; // Tanggal lahir anak
+
+
 
   @override
   void initState() {
@@ -68,7 +70,7 @@ class _EditRecapStateI extends State<EditRecapI> {
   }
 
   void _resetDatatoModel() {
-    _selectedDate = null;
+    _selectedDate = DateTime.now();
     _namaIbuController.clear();
     _namaAnakController.clear();
     _tahunController.clear();
@@ -94,6 +96,16 @@ class _EditRecapStateI extends State<EditRecapI> {
       // Tampilkan pesan sukses atau navigasi ke halaman lain jika diperlukan
     } catch (e) {
       print('Gagal menyimpan data anak: $e');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error Mengakses Jaringan Server. Data gagal dihapus: Cek Internet Anda atau Coba lagi'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+
       // Tampilkan pesan error kepada pengguna
     }
   }
@@ -151,7 +163,7 @@ Future<void> _fetchData() async {
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
+      initialDate: _selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
       builder: (BuildContext context, Widget? child) {
@@ -196,6 +208,85 @@ Future<void> _fetchData() async {
     }
   }
 
+  Future<void> _selectBirthDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedBirthDate ?? DateTime.now().subtract(const Duration(days: 365)),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: ThemeData.light().copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF64748B),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF020617),
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF64748B),
+              ),
+            ),
+            textTheme: TextTheme(
+              titleLarge: GoogleFonts.poppins(
+                fontSize: MediaQuery.of(context).size.width * 0.035,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF64748B),
+              ),
+              bodyLarge: GoogleFonts.poppins(
+                fontSize: MediaQuery.of(context).size.width * 0.035,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF64748B),
+              ),
+              bodyMedium: GoogleFonts.poppins(
+                fontSize: MediaQuery.of(context).size.width * 0.035,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedBirthDate) {
+      setState(() {
+        _selectedBirthDate = picked;
+        _calculateAge(); // Hitung umur otomatis
+      });
+    }
+  }
+
+   void _calculateAge() {
+    if (_selectedBirthDate == null) return;
+
+    final now = _selectedDate; // Gunakan tanggal pemeriksaan (hari ini)
+    int years = now.year - _selectedBirthDate!.year;
+    int months = now.month - _selectedBirthDate!.month;
+
+    // Jika bulan negatif, kurangi 1 tahun dan tambah 12 bulan
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    // Jika hari lahir belum lewat di bulan ini, kurangi 1 bulan
+    if (now.day < _selectedBirthDate!.day) {
+      months--;
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+    }
+
+    setState(() {
+      _tahunController.text = years.toString();
+      _bulanController.text = months.toString();
+      _anakKader.umurTahun = years;
+      _anakKader.umurBulan = months;
+    });
+  }
+
   bool get ButtonActive =>
       _namaIbuController.text.isNotEmpty &&
       _namaAnakController.text.isNotEmpty &&
@@ -203,7 +294,6 @@ Future<void> _fetchData() async {
       _bulanController.text.isNotEmpty &&
       _bbController.text.isNotEmpty &&
       _tbController.text.isNotEmpty &&
-      _selectedDate != null &&
       _selectedGender != null;
 
   @override
@@ -303,13 +393,57 @@ Future<void> _fetchData() async {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Tanggal",
+                          "Tanggal Pemeriksaan",
+                          style: GoogleFonts.poppins(
+                              fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC), // Background abu-abu muda untuk read-only
+                            border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_month, size: height * 0.02, color: const Color(0xFF64748B)),
+                              SizedBox(width: width * 0.02),
+                              Text(
+                                "${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}",
+                                style: GoogleFonts.poppins(
+                                  fontSize: width * 0.035,
+                                  fontWeight: FontWeight.w400,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: height * 0.02,),
+                                    Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.0),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Tanggal Lahir Anak",
                           style: GoogleFonts.poppins(
                               fontSize: width * 0.035, fontWeight: FontWeight.w500, color: const Color(0xFF64748B)),
                         ),
                         const SizedBox(height: 8.0),
                         InkWell(
-                          onTap: () => _selectDate(context),
+                          onTap: () => _selectBirthDate(context),
                           child: Container(
                             width: double.infinity,
                             padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 10.0),
@@ -319,16 +453,18 @@ Future<void> _fetchData() async {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.calendar_month, size: height * 0.02, color: const Color.fromARGB(255, 148, 152, 158),),
-                                SizedBox(width: width * 0.02,),
+                                Icon(Icons.calendar_today, size: height * 0.02, color: const Color(0xFF64748B)),
+                                SizedBox(width: width * 0.02),
                                 Text(
-                                  _selectedDate == null
-                                      ? "Pilih Tanggal"
-                                      : "${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}",
+                                  _selectedBirthDate == null
+                                      ? "Pilih Tanggal Lahir"
+                                      : "${_selectedBirthDate!.day}/${_selectedBirthDate!.month}/${_selectedBirthDate!.year}",
                                   style: GoogleFonts.poppins(
                                     fontSize: width * 0.035,
                                     fontWeight: FontWeight.w400,
-                                    color: _selectedDate == null ? const Color.fromARGB(255, 148, 152, 158) : const Color.fromARGB(255, 148, 152, 158),
+                                    color: _selectedBirthDate == null
+                                        ? const Color(0xFFA1A1AA)
+                                        : const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -421,7 +557,7 @@ Future<void> _fetchData() async {
                           ),
                         ),
                         SizedBox(height: height * 0.02,),
-                        Text(
+                            Text(
                           "Umur",
                           style: GoogleFonts.poppins(
                             color: Colors.black,
@@ -446,12 +582,14 @@ Future<void> _fetchData() async {
                             Expanded(
                               child: TextField(
                                 controller: _tahunController,
-                                keyboardType: TextInputType.number,
+                                enabled: false, // READ ONLY
                                 decoration: InputDecoration(
                                   hintText: "Tahun",
                                   hintStyle: GoogleFonts.poppins(
                                     color: const Color(0xFFA1A1AA),
                                   ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -460,12 +598,11 @@ Future<void> _fetchData() async {
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
+                                  disabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                 ),
                               ),
                             ),
@@ -482,12 +619,14 @@ Future<void> _fetchData() async {
                             Expanded(
                               child: TextField(
                                 controller: _bulanController,
-                                keyboardType: TextInputType.number,
+                                enabled: false, // READ ONLY
                                 decoration: InputDecoration(
                                   hintText: "Bulan",
                                   hintStyle: GoogleFonts.poppins(
                                     color: const Color(0xFFA1A1AA),
                                   ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -496,12 +635,11 @@ Future<void> _fetchData() async {
                                     borderRadius: BorderRadius.circular(8.0),
                                     borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  focusedBorder: OutlineInputBorder(
+                                  disabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: const BorderSide(color: Color(0xFF64748B), width: 1.0),
+                                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                                   ),
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                                 ),
                               ),
                             ),

@@ -87,7 +87,7 @@ class _ChildCardState extends State<ChildCard> {
 
     return GestureDetector(
       onTap: () async {
-        print(this.widget.id);
+        print(widget.id);
         await Navigator.push(
           context,
           MaterialPageRoute(

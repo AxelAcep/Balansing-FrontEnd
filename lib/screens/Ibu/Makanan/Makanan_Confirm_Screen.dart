@@ -65,7 +65,7 @@ class _MakananConfirmScreenState extends State<MakananConfirmScreen> {
     return Container(
       margin: EdgeInsets.only(bottom: height*0.015),
       decoration: BoxDecoration(
-        color: isChecked ? Color(0xFFF1F5F9) : Colors.transparent,
+        color: isChecked ? const Color(0xFFF1F5F9) : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isChecked ? const Color(0xFF9FC86A) : const Color(0xFFE2E8F0),
